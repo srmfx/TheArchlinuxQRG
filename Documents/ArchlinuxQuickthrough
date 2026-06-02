@@ -1189,9 +1189,15 @@ USE LICENSE:
 				RUNNING A PROGRAM WITH A GIVEN ENVIRONMENT VAR
 			FETCHING RETURN STATUS IN FISH
 			CONDITIONAL STATEMENTS IN FISH
+				SIMPLE AGE VERIFICATION ALGORITHM
 			CREATING AND ITERATING ARRAYS IN FISH
-				ITERATING THROUGH FILES ONLY USING COMMAND SUBSTITUTION
+				ITERATING THROUGH FILES USING COMMAND SUBSTITUTION
+				ITERATING USING THE WHILE OPERATOR
+				ITERATING USING THE FOR OPERATOR
+				ITERATING THROUGH TEXT FILE
+				PIPELINE ITERATOR
 			CREATING FUNCTIONS IN FISH
+				RETURNING MULTIPLE VALUES FROM A SINGLE FUNCTION USING COMMAND SUBSTITUTION IN FISH
 			CREATING ALIASES IN FISH
 				PERSISTENTLY CREATING ALIASES FROM COMMANDLINE
 				CREATING A TEMPORARY ALIAS
@@ -6792,13 +6798,41 @@ FISH - THE FRIENDLY INTERACTIVE SHELL
 				    echo "fish is installed and configured";
 				end
 
+			SIMPLE AGE VERIFICATION ALGORITHM
+				function validate_number
+					#This function checks to see if age is an integer number.
+					if not string match -qr '^[0-9]+$' -- $argv;
+						echo "Your age contains non digit characters or is empty";
+						return 1;
+					end
+
+					return 0;
+				end
+
+				echo "Type your age: ";
+				read -s age;
+				validate_number $age;
+
+				if not test $status -eq 0;
+					echo "Invalid age! Input a number!";
+				else if test $age -ge 18;
+					echo "You're an adult";
+				else if test $age -lt 18; and test $age -ge 11;
+					echo "You're a teenager";
+				else if test $age -lt 11; and test $age -ge 7;
+					echo "You're a child";
+				else if test $age -lt 7;
+					echo "You're an infant";
+				end
+
+
 		CREATING AND ITERATING ARRAYS IN FISH
 			set MyArr "A" "B" "C"
 			for count in $MyArr
 				echo "$count"
 			end
 
-			ITERATING THROUGH FILES ONLY USING COMMAND SUBSTITUTION
+			ITERATING THROUGH FILES USING COMMAND SUBSTITUTION
 				set files_arr $(find . -type f)
 				for files_v in $files_arr
 					echo "$files_v"
@@ -6810,25 +6844,69 @@ FISH - THE FRIENDLY INTERACTIVE SHELL
 					echo "$files_v"
 				end
 
+			ITERATING USING THE WHILE OPERATOR
+				Note that on 'fish' shell, the math operator $(( )) doesn't exist and instead
+				the built-in function 'math' exists.
+
+					set count 1;
+					for test $count -le 10;
+						echo "Count: $count";
+						set count $(math $count + 1);
+					end
+
+			ITERATING USING THE FOR OPERATOR
+				for count in $(seq 1 10);
+					echo "Count: $count";
+					set count $(math $count+1);
+				end
+
+			ITERATING THROUGH TEXT FILE
+				set count 1;
+				for line in $(cat my_file.txt);
+					echo "Line $count: $line";
+					set count $(math $count+1);
+				end
+
+			PIPELINE ITERATOR
+				cat my_file.txt | while read -l line
+					echo "Processing: $line"
+				end
+
 		CREATING FUNCTIONS IN FISH
-			Functions do not benefit from fish's shell auto-completion features
+			A) Note: Functions do not benefit from fish's shell auto-completion features
 			unless when fully replacing a given command like the examples below:
 
 				function ls
 					command ls --color=auto $argv
+					return $status
 				end
 
 				function eza
 					command eza --icons=always --color=always $argv
+					return $status
 				end
 
-			A) Note: If auto-completion feature is desired, use abbreviations or Persistent Aliases
+			B) Note: If auto-completion feature is desired, use abbreviations or Persistent Aliases
 			instead.
 
-			B) Note: 'command' runs a given command while ignoring existing
+			C) Note: 'command' runs a given command while ignoring existing
 			shell functions and aliases.
 
-			C) Note: 'eval' runs a given string as command.
+			D) Note: 'eval' runs a given string as command.
+
+			RETURNING MULTIPLE VALUES FROM A SINGLE FUNCTION USING COMMAND SUBSTITUTION IN FISH
+				function get_food_list
+				    echo "2x banana";
+				    echo "4x orange";
+				    echo "8x grape";
+				end
+
+				set food_list $(get_food_list);
+
+				echo "Printing Food List:"
+				for items in $food_list;
+					echo "$items";
+				end
 
 		CREATING ALIASES IN FISH
 			Temporary aliases do not benefit from fish's shell auto-completion features.

@@ -1378,6 +1378,7 @@ USE LICENSE:
 
 
 --MISCALENEOUS B:
+	SAVING ALL FILES METADATA FOR LATER COMPARISON
 	FETCHING RAM AND VIRTUAL MEMORY USED BY GIVEN RUNNING APPLICATIONS
 	SANITIZING FILE AND PATH NAMING | FILENAME AND PATHNAME | FILENAMING AND PATHNAMING CONVENTIONS | IMPORTANT
 	NICE AND RENICE PROCESSES | OPTIMIZATION, PERFORMANCE
@@ -5762,7 +5763,14 @@ Git fixup (Haven't used this myself yet):
 						^ if the commits haven’t been pushed yet, or if you’re working
 						^ on a dedicated remote branch.
 
-git commit --amend		    #Renames the previous commit
+git rebase -i HEAD~<number>	    #Git allows changing the message of any given commit through rebasing.
+				    Simply change name from 'pick' to 'reword' or simply use the 'r' letter,
+				    then save and quit the text editor, finally rename the message.
+
+				    note: if the commit has already been pushed, then 'git push --force' will have to be used.
+				    becareful when doing this on public branches.
+
+git commit --amend		    #Renames the previous commit (Check git rebase)
 					READ MORE ON IF YOU NEED: 
 					"CHANGING THE MESSAGE OF A COMMIT THAT YOU'VE ALREADY PUSHED TO YOUR REMOTE BRANCH"
 
@@ -5771,6 +5779,7 @@ git commit --amend -m "Message"	    #Creates New Commit and Amends the previous 
 
 git commit -a --amend		    #Git adds all file modifications and edits the last commit
 					^ NOTE VERY Useful.
+
 
 git commit -m "Message" <filename>  #Creates a commit point for one single file, even if there are multiple changes
 				    on the staging/working area.
@@ -52847,6 +52856,15 @@ TESTING UP PIPEFAIL ON TERMINAL
 				$ set -o pipefail; cat /dev/null | du -h && echo -e "\nPIPESTATUS: ${pipestatus}"
 
 ---------------
+---------------
+---------------
+---------------
+---------------
+---------------
+SAVING ALL FILES METADATA FOR LATER COMPARISON
+	# find / -type f -exec stat --printf="%n | %A | %U | %G | %Y | %Z | %s |; " {} \; -exec sha256sum {} \; > snapshot_v1.txt
+
+	A) Note: you can then later compare this to another snapshot using 'diff' to check which files have changed..
 ---------------
 ---------------
 ---------------

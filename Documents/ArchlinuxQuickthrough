@@ -385,7 +385,7 @@ USE LICENSE:
 									LISTING REPAIRED FILES FROM DAR ARCHIVE
 							COMPARING DAR ARCHIVES
 								COMPARING TWO DIFFERENT DAR ARCHIVES
-								COMPARING ARCHIVE WITH DATA ON THE FILESYSTEM
+								COMPARING ARCHIVE WITH DATA ON THE FILESYSTEM | VALIDATING DAR ARCHIVE
 							EXTRACTING DATA FROM DAR ARCHIVE
 								EXTRACTING ALL CONTENTS FROM DAR ARCHIVE INTO CURRENT FOLDER
 								EXTRACTING ALL CONTENTS FROM DAR ARCHIVE INTO DIFFERENT FOLDER
@@ -36579,17 +36579,17 @@ when needed.
 
 							$ dar -d ./Archive\ 1 -A ./Archive\ 2
 						
-					8.2 - COMPARING ARCHIVE DATA WITH DATA ON THE FILESYSTEM
+					8.2 - COMPARING ARCHIVE WITH DATA ON THE FILESYSTEM | VALIDATING DAR ARCHIVE
 						DAR also makes it possible to compare the archived data with the data located on the filesystem.
 						This will quickly test all files under the filesystem belonging to the dar archive.
 						
-						Note 1: Just for this case, it'd be wise to archive data as root - during archive creation (using sudo or run0) -
+						A) Note: Just for this case, it'd be wise to archive data as root - during archive creation (using sudo or run0) -
 						to ensure the filesystem properties for each archived file are copied as is from the disk to the archive.
 						In this case, The same must be done when comparing archived, to ensure all properties are tested.
 						archiving as regular user might not copy all filesystem properties, and comparing as regular user will
 						not check for filesystem property differences.
 
-						Note 2: This can be useful to see whether data has been properly extracted inheriting all of it's archived 
+						B) Note: This can be useful to see whether data has been properly extracted inheriting all of it's archived 
 						filesystem properties (User, group, permissions, FSA, EA, etc) or not as well as checking which files have been removed
 						or added/created in the filesystem.
 
@@ -36598,6 +36598,15 @@ when needed.
 							# dar -d ./Archive\ Name
 								or
 							# dar -va -d ./Archive\ Name
+								or
+							# dar -d ./Archive\ Name -R /path/to/data
+
+						C) Note: -R can be used to change dar's root path, when the data is located in another directory.
+						By default, dar will use current path as it's root path; when the archived data doesn't exists in the
+						current path, dar will complain files do not exist in the filesystem when using -d.
+						-R exists to correct this behavior.
+
+
 
 					RECOMMENDED READINGS:
 						GENERATING HASH FILE FOR DAR ARCHIVE DURING CREATION

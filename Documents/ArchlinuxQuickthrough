@@ -51919,7 +51919,7 @@ YAZI, THE COMMANDLINE FILE EXPLORER
 
 			[open]
 			rules = [
-			    { name = "*/", use = ["edit", "open", "reveal"] },
+			    { mime = "text/*", use = ["edit", "open", "reveal"] },
 			    { mime = "audio/*", use = "play" },
 			    { mime = "video/*", use = "play" },
 			    { mime = "video/x-matroska", use = "play" }

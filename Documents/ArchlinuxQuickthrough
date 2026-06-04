@@ -1625,7 +1625,9 @@ USE LICENSE:
 		OPTIMAL /USR/SHARE/VKBASALT/VKBASALT.CONF
 
 	NVIM/VIM TUTORIAL 2020.2-T EDITION 1(NEWER)
+		CHANGING ENCODING IN A FILE THROUGH NVIM | NVIM UTF-8
 		SETTING PERMANENT COLORSCHEMES FOR NVIM
+		MY CUSTOM RUNTIME CONFIGURATION FILE FOR NVIM
 		WINDOW COMMANDS / WINDOW SHORTCUT KEYS
 		ADDING VIM CLIPBOARD FUNCTION
 			ENABLING CLIPBOARD TEMPORARILY
@@ -5377,15 +5379,39 @@ EXTRA COMMANDS:
 
 
 CHANGING ENCODING IN A FILE THROUGH NVIM | NVIM UTF-8
-:write ++enc=utf-8 russian.txt    	# Change Encoding in a File
+	:write ++enc=utf-8 russian.txt    	# Change Encoding in a File
+
+	It's also possible to use persistent / permanent settings on your runtime configuration file for nvim:
+	
+		[file: ~/.config/nvim/init.lua ]
+			--[[
+				'set fileencondings' allow different encodings to be used when the
+				first one isn't present.
+			]]
+
+			vim.cmd("set fileencodings=utf8,cp936,gb18030,big5,ansi")
+		[/file]
 
 SETTING PERMANENT COLORSCHEMES FOR NVIM
-You can set themes, colorschemes, etc on /usr/share/nvim/ by CREATING A FILE with a prefix called .vim
-example:
+	You can set themes, colorschemes, etc on /usr/share/nvim/ by CREATING A FILE with a prefix called .vim
+	example:
 
-[file: ~/.config/nvim/init.vim ]
-	colorscheme murphy
-[/file]
+		A) Note: as of newer up-to-date versions, vim now uses init.lua instead of init.vim.
+		init.lua provides faster loading times.
+
+		[file: ~/.config/nvim/init.lua ]
+			--[[ 
+				the command vim.cmd("colorscheme retrobox") can be used as well for setting up colors.
+			]]
+
+			vim.cmd.colorscheme("retrobox")
+		[/file]
+
+			--- OR ---
+
+		[file: ~/.config/nvim/init.vim ]
+			colorscheme murphy
+		[/file]
 
 It's also possible to set color scheme on vim session files:
 
@@ -5399,6 +5425,19 @@ It's also possible to set color scheme on vim session files:
 		[file: ./<vim_session_file>.nvim] 
 			colorscheme murphy
 		[/file]
+
+MY CUSTOM RUNTIME CONFIGURATION FILE FOR NVIM
+	[file: ~/.config/nvim/init.lua ]
+		-- this is a single comment line
+		--[[
+			for a few old .vim commands, you can use vim.cmd() inside the init.lua script.
+			both 'vim.cmd("colorscheme retrobox")' and 'vim.cmd.colorscheme("retrobox")' are valid.
+		]]
+
+		vim.opt.termguicolors = true
+		vim.cmd.colorscheme("retrobox")
+		vim.cmd("set fileencodings=utf8,cp936,gb18030,big5,ansi")
+	[/file]
 
 -END NEW VIM TUTORIAL--
 ------------------------------

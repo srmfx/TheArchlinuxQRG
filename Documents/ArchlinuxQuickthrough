@@ -1169,6 +1169,11 @@ USE LICENSE:
 		ENABLING VOICE RECOGNITION ON WINDOWS
 
 --MISCALENEOUS A:
+	VIVALDI BROWSER
+		VIVALDI SESSION PATH | VIVALDI PROFILE PATH
+			EXPORTING VIVALDI SESSION
+		VIVALDI HOTKEYS
+
 	FISH - THE FRIENDLY INTERACTIVE SHELL
 		FISH HISTORY FILE
 		RUNTIME CONFIGURATION FILES FOR FISH
@@ -6667,6 +6672,71 @@ git reflog example:
 *					read topic: GIT OAUTH TOKEN | VERY IMPORTANT 2023
 
 
+------
+------
+------
+------
+
+VIVALDI BROWSER
+	VIVALDI SESSION PATH | VIVALDI PROFILE PATH
+		On linux:
+			~/.config/vivaldi/Default/Sessions
+				or
+			~/.config/vivaldi/<Profile Number>/Sessions
+		On Windows:
+			C:\Users\sebas\AppData\Local\Vivaldi\User Data\Default\Sessions
+				or
+			C:\Users\sebas\AppData\Local\Vivaldi\User Data\<Profile Number>\Sessions
+
+		A) Note: To find out your profile number, copy & paste this in the URL Bar Address:
+			vivaldi:about
+				or
+			Click 'Help' > 'About'
+
+		B) Note: Vivaldi also contains a cache directory, but there's no need to save it as data on this folder
+		is just meant to speed up access:
+			~/.cache/vivaldi
+
+		C) Note: Since your passwords are encrypted with your system's keyring or OS user ID,
+		you cannot simply copy the 'Login Data' file in your Vivaldi Profile directory to another computer or
+		new Linux installation to access your passwords.
+
+		EXPORTING VIVALDI SESSION
+			For exporting your vivaldi session to a new PC, you must make a backup of vivaldi's session path, 
+			then create a new vivaldi profile on the new PC and finally overwrite the vivaldi session path
+			on the new PC.
+
+			A) Note: Passwords and authentication cache/cookies are not exported with sessions
+			only tabs and workspaces.
+
+			VERY IMPORTANT:
+				Make sure to change ownership/permission AFTER copying it to the new PC.
+				Keep in mind 'vivaldi' encrypts authentication stored in cache/cookies on a per user basis
+				using operating system level information, because of this it's not possible to export
+				those to a new PC.
+
+				If you need to backup your credentials into a new computer, use a mail client like
+				'outlook' and export the profile to the new PC so that you can safely recover and re-enter all
+				required credentials.
+
+				Other web browser like 'firefox' do not use the Linux Keyring.
+
+			B) Note: Vivaldi Session's feature do not save bookmarks. Use the export bookmark feature
+			if that's intended.
+				Click on 'File' > 'Export' > 'Bookmarks'
+
+			C) Note: It's advised to use an archiving tool like 'dar' or 'tar' in order to create
+			par2(par2cmdline) files for verifying data integrity and repairing it in case of data corruption.
+			'dar' allows you to setup a password for the archive, while 'tar' relies on gpgtar for doing
+			the same. This way you'll be safer against data corruption.
+
+			D) Vivaldi on the new PC will not see the new profile unless a Dummy Profile is created and then
+			overwritten/replaced.
+
+
+	VIVALDI HOTKEYS
+		hold right_click + left_click 	#Move to next page in history
+		hold left_click + right_click   #Move to previous page in history
 ------
 ------
 ------

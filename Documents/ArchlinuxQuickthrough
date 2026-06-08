@@ -2839,7 +2839,7 @@ HOW TO BUILD PACKAGES MANUALLY
 
 mkdir .programdir
 cd .programdir/
-git clone http://xxx.xxx/program.git
+git clone --depth 1 http://xxx.xxx/program.git
 chown -R username:users program/
 cd program/
 makepkg -si
@@ -6459,9 +6459,9 @@ git remote set-url --add <name> <newurl>
 git remote set-url --delete <name> <url>
 
 -----
-git clone <remote path/name>	#Creates a local repo based on a remote repository
-				    example: 
-					git clone https://github.com/marcelojo/artigo_git.git
+git clone --depth 1 <remote path/name>		#Creates a local repo based on a remote repository
+						example: 
+						git clone --depth 1 https://github.com/marcelojo/artigo_git.git
 
 
 git push <remote path/name>    #Pushes current branch modifications into remote one
@@ -25344,7 +25344,7 @@ XBPS PACKAGE MANAGER
 		There's a script called 'xbps-src' that can install source package from Void's Github Repository.
 	of course, you'll need to have 'git' installed as well on your system.
 
-	finally 'git clone https://github.com/void-linux/void-packages.git' the void packages into some directory of your
+	finally 'git clone --depth 1 https://github.com/void-linux/void-packages.git' the void packages into some directory of your
 	choice.
 
 	Now allow restricted packages to be installed on the system:
@@ -29640,7 +29640,7 @@ CUSTOMIZING YOUR ZSH EXPERIENCE
 		
 			1.1.1) (OPTIONAL) If you don't have zsh-theme-powerlevel10k available in any of your linux distro 
 			package manager repositories, it's still possible to fetch it straight from github:
-				$ git clone --depth=1 'https://github.com/romkatv/powerlevel10k.git ~/powerlevel10k
+				$ git clone --depth 1 'https://github.com/romkatv/powerlevel10k.git ~/powerlevel10k
 				
 				Note: if you've done 1.1.1 step, you can skip the 1st line in 1.2.2 step.
 
@@ -40574,7 +40574,7 @@ SOME BROOT FILE EXPLORER
 			$ git clone https://github.com/microsoft/WSL2-Linux-Kernel
 
 			7.1 - (Alternate Option) Git cloning a specific an kernel version:
-				This isn't recommended, always download the newest one,
+				Downloading older versions isn't recommended, always download the newest one,
 			Older kernel versions may contain bugs and problems that can permanently cause damage.
 
 				$ git clone https://github.com/microsoft/WSL2-Linux-Kernel.git --depth=1 -b linux-msft-wsl-6.X.Y

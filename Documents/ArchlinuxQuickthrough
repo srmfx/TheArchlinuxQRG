@@ -1278,6 +1278,7 @@ USE LICENSE:
 				TMUX CONFIGURATION FILE
 					TMUX SESSION INITIALIZATION EXAMPLE
 				MY CUSTOM TMUX CONFIGURATION
+					COPYING TMUX CONFIGURATION FILE TO ROOT USER DIRECTORY
 		MOST USED TMUX HOTKEYS
 		TMUX HOTKEYS
 		TMUX TROUBLESHOOTING
@@ -7803,6 +7804,13 @@ TMUX - TERMINAL MULTIPLEXER
 				set -g focus-events on
 				set -g mouse on
 			[/file]
+
+			COPYING TMUX CONFIGURATION FILE TO ROOT USER DIRECTORY
+				Some programs may complain when executed as 'admin' under normal user when running tmux under the hood,
+				so make sure tmux settings also exist for root user:
+					$ sudo cp ~/.tmux.conf /root/
+						or
+					$ sudo ln -s $(realpath ~/.tmux.conf) /root/.tmux.conf
 
 	MOST USED TMUX HOTKEYS
 		All Hotkeys must be prefixed with 'ctrl+b', unless stated otherwise:

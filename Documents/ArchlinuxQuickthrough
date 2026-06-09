@@ -345,6 +345,10 @@ USE LICENSE:
 					DAR CHEAT SHEET
 						READ THIS BEFORE USING DAR
 						LIST OF DAR FEATURES
+						COMPARING DAR TO OTHER TOOLS
+							DAR VS TAR
+							DAR VS ZPAQ
+						USING DAR AND PAR2 FOR VERIFYING INTEGRITY AND ARCHIVE REPAIRING | DAR 'MAKE' TARGETS
 						BASIC DAR EXAMPLES
 							ADDING DATA TO DAR ARCHIVE
 								USING DAR ARCHIVING WITHOUT COMPRESSION
@@ -379,6 +383,7 @@ USE LICENSE:
 								ADDING NEW FILES AND CONTENTS TO AN EXISTING DAR ARCHIVE
 								MAKING OTHER TYPES OF CHANGES TO EXISTING DAR ARCHIVE
 							INTEGRITY TEST FOR DAR ARCHIVE
+							USING DAR AND PAR2 FOR VERIFYING INTEGRITY AND ARCHIVE REPAIRING | DAR 'MAKE' TARGETS
 							REPAIRING A DAMAGED/CORRUPTED DAR ARCHIVE
 								ISOLATING THE CATALOGUE
 								REPAIRING DAR ARCHIVE
@@ -1851,6 +1856,7 @@ New Syntax(2023):
 ====================================================================================================
 
 -014
+		USING DAR AND PAR2 FOR VERIFYING INTEGRITY AND ARCHIVE REPAIRING | DAR 'MAKE' TARGETS
 		FISH - THE FRIENDLY INTERACTIVE SHELL
 		GPU HARDWARE ACCELERATION CRASHES | WSL CRASHING INTERMITENTLY
 		FZF, FUZZY FINDER COMMAND -> minor update
@@ -35724,7 +35730,7 @@ when needed.
 			List of Tools:
 				brotli.
 
-			1 - Compressing files to a single compressed .br file:
+			1 - COMPRESSING files to a single compressed .br file:
 				NOTE: This will compress 'file 1' and 'file 2' into 'file 1.br' and 'file 2.br' respectively.
 				NOTE: -f option will overwrite any compressed .br file if they already exist
 					$ brotli -f ./file\ 1 ./file\ 2
@@ -35747,7 +35753,7 @@ when needed.
 			2 - Integrity Test for compressed .br file:
 				$ brotli --test -v ./file\ 1.br
 
-			3 - Decompressing/Extracting file from .br compressed file into the current folder:
+			3 - DECOMPRESSING/EXTRACTING file from .br compressed data into the current folder:
 				Note: Unless --stdout or -o is specified, by default files are written to a new file whose name is derived from the source file name.
 				this means that if the compressed file wasn't named/renamed properly, it's filename extension will not be recovered upon extraction.
 
@@ -35896,6 +35902,80 @@ when needed.
 
 				By isolating the catalogue, you won't need a backup/copy of the archive, just the catalogue is enough.
 		
+			COMPARING DAR TO OTHER TOOLS
+				DAR VS TAR
+					DAR is meant for cold storage(long term storage), compressing individual files and providing random access to data.
+					TAR in the other hand doesn't compresses individual files but rather the whole archive is compressed.
+					TAR only provides Sequential Access to data, this means that if a single file becomes corrupt inside the archive, then the rest
+					of the archive will be damaged and un-recoverable.
+
+					This data corruption can happen early during archive creation rendering the archive backup completely useless from the point where
+					it was corrupted.
+
+					Compression-wise DAR has a better compresson ratio since it compresses files individually, while TAR offers little to no gains upon doing
+					lossless compression since compression is executed on the whole archive instead of the individual files in it.
+					
+					TAR relies on GPGTAR for data encryption while DAR has built-in libraries and functions for doing the same.
+
+					Older versions of TAR(Not newer versions) relies on compression utilities to be installed on the system;
+					DAR on the other hand uses built-in functions.
+
+					For TAR, the abscence of one or more of these tools on the system - depending on the archives you have - may render decompression
+					useless. 
+
+					In general, as a long term storage tool, tar is just not as reliable as dar is; although both can be used to achieve the same goal,
+					dar is much safer, trustable and more reliable.
+
+					dar also works side-by-side with par2cmdline for verifying and repairing archive integrity,
+					read more on:
+						USING DAR AND PAR2 FOR VERIFYING INTEGRITY AND ARCHIVE REPAIRING
+
+				DAR VS ZPAQ
+					Since ZPAQ relies on arithmetic coding, a single flipped bit will cause the rest of the compressed blocks to become unreadable, making external
+					backup copies critical for cold long term storage.
+
+					In the other hand, DAR offers a relaxed reading mode that ignores incoherences or internal corruption and extracts any
+					remainning healthy data.
+
+					ZPAQ also performs extremely slow when both compressing and extracting/decompressing huge archives, rendering it cubersome for
+					large data backup.
+
+					dar also works side-by-side with par2cmdline for verifying and repairing archive integrity,
+					read more on:
+						USING DAR AND PAR2 FOR VERIFYING INTEGRITY AND ARCHIVE REPAIRING
+
+			USING DAR AND PAR2 FOR VERIFYING INTEGRITY AND ARCHIVE REPAIRING | DAR 'MAKE' TARGETS
+				DAR allows 'make' targets to be created on it's runtime configuration file:
+					/etc/darrc
+
+				Each target can be called directly from commandline:
+					$ dar -c <archive-name> -g <path/to/data> <target-name>
+
+					Ex. 1: - Creating par2 files automatically upon creating .dar archive - 
+							$ dar -c archive\ name -g ./tmp par2
+
+						A) Note: by default, dar creates par2 files using a small redundancy percentage.
+						you can increase it on /etc/darrc
+
+					Ex. 2: - Verifying par2 file automatically using dar -
+							$ dar --test archive\ name par2
+
+					Ex. 3: - Repairing an archive using par2 directly -
+							$ par2 repair archive\ name
+						
+				The user can also create other targets if desired, example:
+					[file: /etc/darrc ]
+						par2c:
+							-E "par2 create -r150 %b.%N.%e"
+					[/file]
+
+					A) Note: this creates redundancy of 150% when generating par2 files.
+
+					B) Note: %b is the basename of the file. %N is the number of the slice. %e is the extension name.
+
+					C) The command will generate par2 files for each newly created slice upon dar creating an archive,
+					whenever 'par2c' is used from commandline.
+
 			LIST OF DAR FEATURES
 				SOURCE: http://dar.linux.free.fr/doc/Features.html
 
@@ -36740,6 +36820,7 @@ when needed.
 						$ dar -t ./<archive_filename>
 
 						RECOMMENDED READINGS:
+							USING DAR AND PAR2 FOR VERIFYING INTEGRITY AND ARCHIVE REPAIRING | DAR 'MAKE' TARGETS
 							GENERATING HASH FILE FOR DAR ARCHIVE DURING CREATION
 							COMPARING DAR ARCHIVES
 
@@ -36768,7 +36849,10 @@ when needed.
 							
 							After fixing the archive, the "Archive Catalogue" will be the
 							repaired archive.
-							
+
+							RECOMMENDED READINGS:
+								USING DAR AND PAR2 FOR VERIFYING INTEGRITY AND ARCHIVE REPAIRING | DAR 'MAKE' TARGETS
+
 							7.3.1) LISTING REPAIRED FILES FROM DAR ARCHIVE
 								With the repaired archive in hands, you can now list to 
 								see which files have been saved by the repair:

@@ -1175,6 +1175,7 @@ USE LICENSE:
 
 --MISCALENEOUS A:
 	RESTIC - DATA BACKUP REPOSITORY
+		RESTIC VS BORG
 		INITIALIZING A RESTIC REPOSITORY
 		GENERATING RESTIC CONFIGURATION FILE FOR SHELL
 		ADDING DATA TO RESTIC REPOSITORY
@@ -6703,6 +6704,20 @@ git reflog example:
 ------
 ------
 RESTIC - DATA BACKUP REPOSITORY
+	'Restic' is well supported on Linux, Windows and MacOS.
+	
+		links / source: 
+			https://restic.net
+			https://github.com/restic/restic
+
+	RESTIC VS BORG
+		Unlike 'borg', restic is well supported on different operating systems.
+		As of current date, 'restic' is also more featureful when compared to 'borg'.
+
+		A 'restic' provides more commandline options for repairing and fixing a repository.
+
+		Borg is not available under native windows.
+		
 	INITIALIZING A RESTIC REPOSITORY
 		The user can own as many repositories as he wants and can add any data to it,
 		include files and whole directories:

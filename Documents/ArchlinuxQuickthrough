@@ -1174,6 +1174,24 @@ USE LICENSE:
 		ENABLING VOICE RECOGNITION ON WINDOWS
 
 --MISCALENEOUS A:
+	RESTIC - DATA BACKUP REPOSITORY
+		INITIALIZING A RESTIC REPOSITORY
+		GENERATING RESTIC CONFIGURATION FILE FOR SHELL
+		ADDING DATA TO RESTIC REPOSITORY
+			ADDING DATA FROM A FILE LIST
+			ADDING TAG FOR NEW BACKED UP DATA IN RESTIC REPOSITORY
+			REMOVING A TAG FROM EXISTING SNAPSHOT IN RESTIC REPOSITORY
+			UPDATING TAGS FROM EXISTING SNAPSHOT IN RESTIC REPOSITORY
+		DELETING/REMOVING SNAPSHOT FROM RESTIC REPOSITORY
+		LISTING ALL SNAPSHOTS AVAILABLE IN A RESTIC REPOSITORY
+		EXTRACTING/RESTORING A GIVEN SNAPSHOT BACK TO DISK USING RESTIC
+		MOUNTING EXISTING SNAPSHOTS USING RESTIC
+			CHECKING DIFFERENCES BETWEEN DISK DATA AND SNAPSHOTTED DATA
+		TESTING RESTIC REPOSITORY FOR ERRORS
+			REPAIRING RESTIC REPOSITORY
+		CHECKING RESTIC SNAPSHOTS FOR DIFFERENCES
+		LISTING TOTAL DISK SIZE OF THE RESTIC REPOSITORY
+
 	VIVALDI BROWSER
 		VIVALDI SESSION PATH | VIVALDI PROFILE PATH
 			EXPORTING VIVALDI SESSION
@@ -1856,6 +1874,7 @@ New Syntax(2023):
 ====================================================================================================
 
 -014
+		RESTIC - DATA BACKUP REPOSITORY
 		USING DAR AND PAR2 FOR VERIFYING INTEGRITY AND ARCHIVE REPAIRING | DAR 'MAKE' TARGETS
 		FISH - THE FRIENDLY INTERACTIVE SHELL
 		GPU HARDWARE ACCELERATION CRASHES | WSL CRASHING INTERMITENTLY
@@ -6683,7 +6702,124 @@ git reflog example:
 ------
 ------
 ------
+RESTIC - DATA BACKUP REPOSITORY
+	INITIALIZING A RESTIC REPOSITORY
+		The user can own as many repositories as he wants and can add any data to it,
+		include files and whole directories:
+			$ restic init
 
+	GENERATING RESTIC CONFIGURATION FILE FOR SHELL
+		$ restic generate <shell-option> 
+
+		Current Available Shell Options:
+			--bash-completion 		#write bash completion file (`-` for stdout)
+			--fish-completion 		#write fish completion file (`-` for stdout)
+			--powershell-completion 	#write powershell completion file (`-` for stdout)
+			--zsh-completion 		#write zsh completion file (`-` for stdout)
+
+		ex 1: - generating configuration file for fish -
+			$ restic generate --fish-completion - >> ~/.config/fish/config.fish
+		
+	ADDING DATA TO RESTIC REPOSITORY
+		$ restic -r <path/to/repo> backup <path-to-backup>
+
+		ADDING DATA FROM A FILE LIST
+			It's possible to use a file as a list when adding data:
+				$ restic -r <path/to/repo> backup --files-from=./file\ list.txt
+
+			A) Note: '--files-from=' can be specified multiple times.
+
+			B) Note: '--files-from-raw=' and '--files-from-verbatim=' is also available.
+
+		ADDING TAG FOR NEW BACKED UP DATA IN RESTIC REPOSITORY
+			It's possible to create multiple tags:
+				$ restic -r <path/to/repo> backup <path-to-backup> --tag documents,important
+
+			A) Note: this creates two named tags called 'important' and 'document'.
+
+		REMOVING A TAG FROM EXISTING SNAPSHOT IN RESTIC REPOSITORY
+			Remove tags from existing snapshots:
+				$ restic -r <path/to/repo> tag --remove documents,important <snapshot_ID1> [snapshot_ID2]
+
+		UPDATING TAGS FROM EXISTING SNAPSHOT IN RESTIC REPOSITORY
+			This replaces all existing tags with the new ones
+				$ restic -r <path/to/repo> tag --set old_documents,unimportant <snapshot_ID1> [snapshot_ID2]
+
+	DELETING/REMOVING SNAPSHOT FROM RESTIC REPOSITORY
+		$ restig -r . <path/to/repo> forget <snapshot_ID1> [snapshot_ID2] --prune
+
+		Note: You can list avaiable snapshots using the following:
+			$ restic -r <path/to/repo> snapshots
+
+	LISTING ALL SNAPSHOTS AVAILABLE IN A RESTIC REPOSITORY
+		$ restic -r <path/to/repo> snapshots
+
+	EXTRACTING/RESTORING A GIVEN SNAPSHOT BACK TO DISK USING RESTIC
+
+			SYNTAX:
+				$ restic -r <path/to/repo> restore <snapshot-ID> --target <path/to/extraction>
+
+			ex 1: - extracting existing snapshot to disk -
+				$ restic -r . restore 76525837 --target ./My\ Data
+
+	MOUNTING EXISTING SNAPSHOTS USING RESTIC
+		Restic relies on 'fuse' filesystem for mounting existing snapshots as read-only.
+		This is useful for checking the data without actually restoring it back.
+
+			SYNTAX:
+				$ restic -r <path/to/repo> mount <mount-point>
+					or
+				$ restic -r <path/to/repo> mount <mount-point> --path-template=snapshots/<id>
+
+			A) Note: <mount-point> must've been created beforehand.
+
+		ex 1: - mounting all snapshots - 
+			$ cd /path/to/repo && mkdir ./mnt
+			$ restic -r . mount ./mnt
+		
+		ex 2: - mounting specific snapshot -
+			$ cd /path/to/repo && mkdir ./mnt
+			$ restic -r . mount ./mnt --path-template=snapshots/b0848d5f882c591c3d392763e959d13c3fd7fcfc83270d02a6c2facbfdceab69
+
+		CHECKING DIFFERENCES BETWEEN DISK DATA AND SNAPSHOTTED DATA
+			First mount the data using 'restic', then finally use a tool like 'diff'.
+
+			ex 1: - checking differences between disk data and snapshotted data -
+				$ restic -r . mount ./mnt --path-template=snapshots/b0848d5f882c591c3d392763e959d13c3fd7fcfc83270d02a6c2facbfdceab69
+				$ diff -rqd ./mnt/Extracted\ Dir1 ~/Disk\ Data
+
+			A) Note: standard 'diff' doesn't evaluates meta-data and can be used normally.
+			however, comparison tools that evaluate the meta-data(timestamps, ownership, permissions) will not work properly.
+			The reason for this is that 'restic' mounts data as read-only mode.
+			
+	TESTING RESTIC REPOSITORY FOR ERRORS
+		This simply check repository for errors:
+			$ restic -r <path/to/repo> check --read-data
+
+			A) --read-data reads all data blobs, which can take considerable time.
+			This may be ommited when a thorough test is not intended.
+			
+			B) This test can capture errors on 'packs', 'index' and 'snapshots'.
+
+		REPAIRING RESTIC REPOSITORY
+			Three commands are available for fixing restic repositories when errors are encountered:
+				$ restic -r . repair index
+				$ restic -r . repair packs 
+				$ restic -r . repair snapshots
+			
+	CHECKING RESTIC SNAPSHOTS FOR DIFFERENCES
+		$ restic -r <path/to/repo> diff <snapshot_ID_1> <snapshot_ID_2>
+
+		Note: You can list avaiable snapshots using the following:
+			$ restic -r <path/to/repo> snapshots
+	
+	LISTING TOTAL DISK SIZE OF THE RESTIC REPOSITORY
+		$ restic -r <path/to/repo> stats
+	
+------
+------
+------
+------
 VIVALDI BROWSER
 	VIVALDI SESSION PATH | VIVALDI PROFILE PATH
 		On linux:

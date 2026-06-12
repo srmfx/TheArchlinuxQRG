@@ -1256,6 +1256,7 @@ USE LICENSE:
 				CHANGING BETWEEN EXISTING SESSIONS
 			CREATING A NEW WINDOW ON TMUX
 				CREATING A NAMED WINDOW
+				CREATING A WINDOW AND RE-ARRANGE THE INDEX ORDER FOR OTHER WINDOWS ON TMUX
 				CREATING A NAMED WINDOW ON A DIFFERENT SESSION
 				CREATING A NAMED WINDOW OR SESSION USING A DIFFERENT PATH
 					CREATING WINDOW USING A DIFFERENT PATH
@@ -1272,11 +1273,13 @@ USE LICENSE:
 				CHANGING CURRENT WINDOW BY USING IT'S NAME
 			MOVING AND SWAPPING WINDOWS
 				MOVING CURRENT WINDOW TO A NEW INDEX
+				MOVING A WINDOW AND RE-ARRANGE THE INDEX ORDER FOR OTHER WINDOWS ON TMUX
 				MOVING CURRENT WINDOW TO A DIFFERENT SESSION
 				SWAPPING CURRENT WINDOW WITH A DIFFERENT WINDOW
 				SWAPPING CURRENT WINDOW WITH A WINDOW ON A DIFFERENT SESSION
 				SWAPPING A GIVEN WINDOW WITH ANOTHER DIFFERENT WINDOW
 			LINKING A WINDOW TO A DIFFERENT SESSION
+				LINKING A WINDOW AND RE-ARRANGE THE INDEX ORDER FOR OTHER WINDOWS ON TMUX
 				LINKING A WINDOW FROM A DIFFERENT SESSION INTO AN EXISTING KNOWN SESSION
 				UNLINKING CURRENT WINDOW
 			JOINNING AND BREAKING PANES 
@@ -6714,7 +6717,7 @@ RESTIC - DATA BACKUP REPOSITORY
 		Unlike 'borg', restic is well supported on different operating systems.
 		As of current date, 'restic' is also more featureful when compared to 'borg'.
 
-		A 'restic' provides more commandline options for repairing and fixing a repository.
+		'restic' provides more commandline options for repairing and fixing a repository.
 
 		Borg is not available under native windows.
 		
@@ -7471,6 +7474,18 @@ TMUX - TERMINAL MULTIPLEXER
 					or
 				:neww -n <name>
 
+			CREATING A WINDOW AND RE-ARRANGE THE INDEX ORDER FOR OTHER WINDOWS ON TMUX
+				By either using -a or -b it's possible to re-arrange the order of the
+				already existing windows:
+					:neww -n <name> -at :1
+						or
+					:neww -n <name> -bt :1
+
+				A) Note: -a will create the newly named window AFTER the given index given on -t.
+				B) Note: -b will create the newly named window BEFORE the given index given on -t.
+
+				both will re-arrange the order by pushing all windows indexes by +1.
+
 			CREATING A NAMED WINDOW ON A DIFFERENT SESSION
 				Session must already exist.
 
@@ -7582,6 +7597,19 @@ TMUX - TERMINAL MULTIPLEXER
 						or
 					:movew -t <new-window-index>
 
+			MOVING A WINDOW AND RE-ARRANGE THE INDEX ORDER FOR OTHER WINDOWS ON TMUX
+				By either using -a or -b it's possible to re-arrange the order of the
+				already existing windows:
+
+					:move-window -at :0
+						or
+					:move-window -bt :0
+
+				A) Note: -a will move the newly named window AFTER the given index given on -t.
+				B) Note: -b will move the newly named window BEFORE the given index given on -t.
+
+				both will re-arrange the order by pushing all windows indexes by +1.
+
 			MOVING CURRENT WINDOW TO A DIFFERENT SESSION
 				:move-window -t <session_name>
 					or
@@ -7614,6 +7642,19 @@ TMUX - TERMINAL MULTIPLEXER
 			in a different session while keeping them synced, separating them in a different 'workspace'
 			by creating new session(s) for them.
 
+
+			LINKING A WINDOW AND RE-ARRANGE THE INDEX ORDER FOR OTHER WINDOWS ON TMUX
+				By either using -a or -b it's possible to re-arrange the order of the
+				already existing windows:
+
+				:link-window -at :0
+					or
+				:link-window -at :0
+
+				A) Note: -a will link the newly named window AFTER the given index given on -t.
+				B) Note: -b will link the newly named window BEFORE the given index given on -t.
+
+				both will re-arrange the order by pushing all windows indexes by +1.
 
 			LINKING A WINDOW FROM A DIFFERENT SESSION INTO AN EXISTING KNOWN SESSION
 				This will create a new window into an ALREADY EXISTING session:
@@ -7960,6 +8001,19 @@ TMUX - TERMINAL MULTIPLEXER
 				setw -g mode-keys vi
 				set -g focus-events on
 				set -g mouse on
+
+				new -s NVIM -n Book "/bin/nvim -S ~/nvimsession"
+				neww -n List2 "/bin/nvim -S ~/nvimsession"
+				neww -n List3 "/bin/nvim  -S ~/nvimsession"
+
+				new -s STUDY
+				linkw -s NVIM:0 -bt :0
+
+				new -s RUNNING_PROGRAMS -n some-program /bin/sudo -iu some-user some-program
+				new -s TERM
+				new -s PROJECTS
+				new -s TEST
+				new -s DataBackup -c ~/DataBackup
 			[/file]
 
 			COPYING TMUX CONFIGURATION FILE TO ROOT USER DIRECTORY
@@ -8878,7 +8932,7 @@ mdadm --create /dev/md0 --level=0 --raid-devices=2 /dev/sdc7 /dev/sda4
 --------INDEX-----------------------------------------------
 note.: not in order, use search function to find it:
 
-	env, dd, 
+	env, dd, sed, 
 	pstree, lslogins, userbdctl, atop, pgrep,
 	uname, ipmaddr, ifcfg(old), ifconfig, su, sudo,
 	history, hdparm, vi, visudo, nvim, gdb, tbclock 

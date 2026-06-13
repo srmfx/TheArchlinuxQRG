@@ -1174,6 +1174,20 @@ USE LICENSE:
 		ENABLING VOICE RECOGNITION ON WINDOWS
 
 --MISCALENEOUS A:
+	JQ - THE COMMANDLINE JSON PROCESSOR
+		CREATING A SIMPLE JSON OBJECT USING JQ
+		CREATING A MULTI-VALUED FIELD USING JQ
+		CREATING NESTED OBJECTS USING JQ - PART 1
+		CREATING NESTED OBJECTS USING JQ - PART 2
+		QUERYING FOR SPECIFIC OBJECTS USING CONDITIONALS IN JQ - PART 1
+		QUERYING FOR SPECIFIC OBJECTS USING CONDITIONALS IN JQ - PART 2	
+		SELECTING FIELDS AND FORMATTING OUTPUT
+		CREATING A NEW FIELD ON AN EXISTING JSON DATA
+		DELETING AN EXISTING FIELD ON JSON DATA USING JQ
+		DELETING ALL VALUES FROM AN EXISTING MULTI-VALUED FIELD USING JQ
+		UPDATING VALUE FROM FIELD BELONGING TO A GIVEN PERSON
+		APPENDING VALUE TO EXISTING FIELD BELONGING TO A GIVEN PERSON
+
 	RESTIC - DATA BACKUP REPOSITORY
 		RESTIC VS BORG
 		INITIALIZING A RESTIC REPOSITORY
@@ -1878,6 +1892,7 @@ New Syntax(2023):
 ====================================================================================================
 
 -014
+		JQ - THE COMMANDLINE JSON PROCESSOR
 		RESTIC - DATA BACKUP REPOSITORY
 		USING DAR AND PAR2 FOR VERIFYING INTEGRITY AND ARCHIVE REPAIRING | DAR 'MAKE' TARGETS
 		FISH - THE FRIENDLY INTERACTIVE SHELL
@@ -6702,6 +6717,177 @@ git reflog example:
 *					read topic: GIT OAUTH TOKEN | VERY IMPORTANT 2023
 
 
+------
+------
+------
+------
+JQ - THE COMMANDLINE JSON PROCESSOR
+	The commandline tool 'jq' can be used both for accessing and and persisting data objects.
+
+		links:
+			https://jqlang.org/manual/
+			https://developer.zendesk.com/documentation/integration-services/developer-guide/jq-cheat-sheet/#getting-an-object-property
+
+	CREATING A SIMPLE JSON OBJECT USING JQ
+		Each new object is capable of containning multiple fields and values:
+			$ jq -n '{ "name": "Person001", "address": "some address", "phone number": "111222333" }' > test.json
+
+	CREATING A MULTI-VALUED FIELD USING JQ
+		Multi-valued fields can contain multiple values:
+			$ jq -n '{ "name": "Person001", "addresses": [ "some address 1", "some address 2" ] }' > test.json
+
+			Output:
+				{
+				  "name": "Person001",
+				  "addresses": [
+				    "some address 1",
+				    "some address 2"
+				  ]
+				}
+
+
+	CREATING NESTED OBJECTS USING JQ - PART 1
+		This creates a single ID object, containning a nested object named 'id_number' that co0ntains two fields "unique" and "shared".
+
+			$ jq -n '{ "id": { "id_number": [ {"unique":"001", "shared":"002"} ], "another_id_field":"003" } }' > test.json
+
+			Output:
+				{
+				  "id": {
+				    "id_number": [
+				      {
+					"unique": "001",
+					"shared": "002"
+				      }
+				    ],
+				    "test_field": "001"
+				  }
+				}
+
+	CREATING NESTED OBJECTS USING JQ - PART 2
+		This example creates 2 objects that belong to the "persons" object as nested objects, both containning "name" and "address" field,
+		address being a non-object multi-valued field.
+
+			$ jq -n '{ "people": [ {"name":"person001", "address": ["address1", "address2"]}, {"name":"person002", "address":["address3"]} ] }' > test.json
+
+			Output:
+				{
+				  "people": [
+				    {
+				      "name": "person001",
+				      "address": [
+					"address1",
+					"address2"
+				      ]
+				    },
+				    {
+				      "name": "person002",
+				      "address": [
+					"address3"
+				      ]
+				    }
+				  ]
+				}
+	
+	QUERYING FOR SPECIFIC OBJECTS USING CONDITIONALS IN JQ - PART 1
+		This will retrieve result in JSON format for further data manipulation:
+			$ jq -r '.people[] | select(.name == "person001")' test.json
+				or
+			$ cat ./test.json | jq -r '.people[] | select(.name == "person001")'
+
+			Output:
+				{
+				  "name": "person001",
+				  "address": [
+				    "address1",
+				    "address2"
+				  ]
+				}
+
+			A) Note: create the test.json file using the following:
+				$ jq -n '{ "people": [ {"name":"person001", "address": ["address1", "address2"]}, {"name":"person002", "address":["address3"]} ] }' > test.json
+
+
+	QUERYING FOR SPECIFIC OBJECTS USING CONDITIONALS IN JQ - PART 2	
+			$ jq -r '.people[] | select(.name == "person001") | .name,.address' test.json
+				or
+			$ cat ./test.json | jq -r '.people[] | select(.name == "person001") | .name,.address'
+
+			Output:
+				person001
+				[
+				  "address1",
+				  "address2"
+				]
+
+
+			A) Note: create the test.json file using the following:
+				$ jq -n '{ "people": [ {"name":"person001", "address": ["address1", "address2"]}, {"name":"person002", "address":["address3"]} ] }' > test.json
+
+	SELECTING FIELDS AND FORMATTING OUTPUT
+		This will fetch two different fields 'name' and 'address' from the object named 'people' and format it before output on screen:
+			$ jq -r '"Name: \(.people[].name) \n\tAddress: \(.people[].address[])"' test.json
+				or
+			$ cat ./test.json | jq -r '"Name: \(.people[].name) \n\tAddress: \(.people[].address[])"'
+
+
+			Output:
+				Name: person001
+					Address: address1
+				Name: person002
+					Address: address1
+				Name: person001
+					Address: address2
+				Name: person002
+					Address: address2
+				Name: person001
+					Address: address3
+				Name: person002
+					Address: address3
+
+
+			A) Note: create the test.json file using the following:
+				$ jq -n '{ "people": [ {"name":"person001", "address": ["address1", "address2"]}, {"name":"person002", "address":["address3"]} ] }' > test.json
+
+			B) Note: since data isn't retrieved in JSON format, it can't be further manipulated as is.
+
+	CREATING A NEW FIELD ON AN EXISTING JSON DATA
+		This command will create a new named field called 'description' for every single .people object in the json file:
+			$ jq '.people[] += {"description":"some description message"}' test.json > new_data.json
+
+			A) Note: create the test.json file using the following:
+				$ jq -n '{ "people": [ {"name":"person001", "address": ["address1", "address2"]}, {"name":"person002", "address":["address3"]} ] }' > test.json
+
+	DELETING AN EXISTING FIELD ON JSON DATA USING JQ
+		This will delete the field address from all instances of the object 'people' along with all address values:
+			$ jq 'del(.people[].address)' test.json > new_data.json
+
+
+		A) Note: create the test.json file using the following:
+			$ jq -n '{ "people": [ {"name":"person001", "address": ["address1", "address2"]}, {"name":"person002", "address":["address3"]} ] }' > test.json
+
+	DELETING ALL VALUES FROM AN EXISTING MULTI-VALUED FIELD USING JQ
+		Uses the same example above, but this time only deletes the values, the field will remain existing:
+			$ jq 'del(.people[].address[])' test.json > new_data.json
+
+
+		A) Note: create the test.json file using the following:
+			$ jq -n '{ "people": [ {"name":"person001", "address": ["address1", "address2"]}, {"name":"person002", "address":["address3"]} ] }' > test.json
+
+	UPDATING VALUE FROM FIELD BELONGING TO A GIVEN PERSON
+			$ jq '.people[] | select(.name == "person001").address = "address 4"' test.json > new_data.json
+
+
+		A) Note: create the test.json file using the following:
+			$ jq -n '{ "people": [ {"name":"person001", "address": ["address1", "address2"]}, {"name":"person002", "address":["address3"]} ] }' > test.json
+
+		B) Note: This update will change the type of object from multi-valued array to a field carrying a single-value.
+
+	APPENDING VALUE TO EXISTING FIELD BELONGING TO A GIVEN PERSON
+			$ jq '.people[] | select(.name == "person001" and .address[] == "address1").address[0] |= . + " street"' test.json
+
+		A) Note: create the test.json file using the following:
+			$ jq -n '{ "people": [ {"name":"person001", "address": ["address1", "address2"]}, {"name":"person002", "address":["address3"]} ] }' > test.json
 ------
 ------
 ------

@@ -6854,6 +6854,8 @@ JQ - THE COMMANDLINE JSON PROCESSOR
 	CREATING A NEW FIELD ON AN EXISTING JSON DATA
 		This command will create a new named field called 'description' for every single .people object in the json file:
 			$ jq '.people[] += {"description":"some description message"}' test.json > new_data.json
+				or
+			$ jq '.people[] += {"description":"some description message"}' test.json | sponge test.json
 
 			A) Note: create the test.json file using the following:
 				$ jq -n '{ "people": [ {"name":"person001", "address": ["address1", "address2"]}, {"name":"person002", "address":["address3"]} ] }' > test.json
@@ -6861,6 +6863,8 @@ JQ - THE COMMANDLINE JSON PROCESSOR
 	DELETING AN EXISTING FIELD ON JSON DATA USING JQ
 		This will delete the field address from all instances of the object 'people' along with all address values:
 			$ jq 'del(.people[].address)' test.json > new_data.json
+				or
+			$ jq 'del(.people[].address)' test.json | sponge test.json
 
 
 		A) Note: create the test.json file using the following:
@@ -6869,6 +6873,8 @@ JQ - THE COMMANDLINE JSON PROCESSOR
 	DELETING ALL VALUES FROM AN EXISTING MULTI-VALUED FIELD USING JQ
 		Uses the same example above, but this time only deletes the values, the field will remain existing:
 			$ jq 'del(.people[].address[])' test.json > new_data.json
+				or
+			$ jq 'del(.people[].address[])' test.json | sponge test.json
 
 
 		A) Note: create the test.json file using the following:
@@ -6876,6 +6882,8 @@ JQ - THE COMMANDLINE JSON PROCESSOR
 
 	UPDATING VALUE FROM FIELD BELONGING TO A GIVEN PERSON
 			$ jq '.people[] | select(.name == "person001").address = "address 4"' test.json > new_data.json
+				or
+			$ jq '.people[] | select(.name == "person001").address = "address 4"' test.json | sponge test.json
 
 
 		A) Note: create the test.json file using the following:
@@ -6884,7 +6892,9 @@ JQ - THE COMMANDLINE JSON PROCESSOR
 		B) Note: This update will change the type of object from multi-valued array to a field carrying a single-value.
 
 	APPENDING VALUE TO EXISTING FIELD BELONGING TO A GIVEN PERSON
-			$ jq '.people[] | select(.name == "person001" and .address[] == "address1").address[0] |= . + " street"' test.json
+			$ jq '.people[] | select(.name == "person001" and .address[] == "address1").address[0] |= . + " street"' test.json > new_data.json
+				or
+			$ jq '.people[] | select(.name == "person001" and .address[] == "address1").address[0] |= . + " street"' test.json | sponge test.json
 
 		A) Note: create the test.json file using the following:
 			$ jq -n '{ "people": [ {"name":"person001", "address": ["address1", "address2"]}, {"name":"person002", "address":["address3"]} ] }' > test.json
@@ -9118,7 +9128,7 @@ mdadm --create /dev/md0 --level=0 --raid-devices=2 /dev/sdc7 /dev/sda4
 --------INDEX-----------------------------------------------
 note.: not in order, use search function to find it:
 
-	env, dd, sed, 
+	env, dd, sed, sponge, jq
 	pstree, lslogins, userbdctl, atop, pgrep,
 	uname, ipmaddr, ifcfg(old), ifconfig, su, sudo,
 	history, hdparm, vi, visudo, nvim, gdb, tbclock 
@@ -9149,6 +9159,7 @@ note.: not in order, use search function to find it:
 	*rclone, split, dar, tar, par2 (par2cmdline).
 	*strace, filelock-touch, filelock-create, filelock-check, filelock-remove, strace, nohup.
 	nice, renice, shellcheck, tcpdump, pushd, dirs, popd, pwd, pinky, finger, at.
+	zoxide, fzf, television,
 
 	look later:
 		dircolors for setting colors to 'ls'

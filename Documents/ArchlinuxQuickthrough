@@ -1174,6 +1174,8 @@ USE LICENSE:
 		ENABLING VOICE RECOGNITION ON WINDOWS
 
 --MISCALENEOUS A:
+	SQLITE3 - A COMMAND LINE INTERFACE FOR SQLITE VERSION 3
+	SED - STREAM EDITOR FOR FILTERING AND TRANSFORMING TEXT
 	JQ - THE COMMANDLINE JSON PROCESSOR
 		CREATING A SIMPLE JSON OBJECT USING JQ
 		CREATING A MULTI-VALUED FIELD USING JQ
@@ -1892,6 +1894,8 @@ New Syntax(2023):
 ====================================================================================================
 
 -014
+		SQLITE3 - A COMMAND LINE INTERFACE FOR SQLITE VERSION 3
+		SED - STREAM EDITOR FOR FILTERING AND TRANSFORMING TEXT
 		JQ - THE COMMANDLINE JSON PROCESSOR
 		RESTIC - DATA BACKUP REPOSITORY
 		USING DAR AND PAR2 FOR VERIFYING INTEGRITY AND ARCHIVE REPAIRING | DAR 'MAKE' TARGETS
@@ -6721,6 +6725,101 @@ git reflog example:
 ------
 ------
 ------
+SQLITE3 - A COMMAND LINE INTERFACE FOR SQLITE VERSION 3
+	CREATING A DATABASE IN SQLITE3
+		The command below will create the named database and switch to sqlite3's interactive mode:
+			$ sqlite3 <database-name>
+	
+		Links:
+			https://sqlite.org/cli.html
+	CREATING A TABLE IN SQLITE3
+		SYNTAX:
+			$ sqlite3 <database-name> "CREATE TABLE <table-name> (<field-name> <type>);"
+
+		Ex.: - CREATING A USER TABLE -
+			$ sqlite3 ./db.sqlite3 'CREATE TABLE users (id INTEGER PRIMARY KEY, name TEXT);'
+	
+	INSERT VALUE INTO A DATABASE TABLE USING SQLITE3
+		SYNTAX:
+			$ sqlite3 <database-name> "INSERT INTO <table-name> (<field-name>) VALUES (<value>)"
+			
+		Ex.: - ADDING A NEW VALUES TO A NAMED FIELD -
+			$ sqlite3 ./db.sqlite3 "INSERT INTO users (name) VALUES ('paul');"
+			$ sqlite3 ./db.sqlite3 "INSERT INTO users (name) VALUES ('bob');"
+				or
+			$ sqlite3 ./db.sqlite3 "INSERT INTO users (name) VALUES ('bob');\
+			INSERT INTO users (name) VALUES ('paul');\
+			"
+	
+	SELECTING VALUES FROM A GIVEN TABLE USING SQLITE3
+		SYNTAX:
+			$ sqlite3 <database-name> "SELECT <field-name> FROM <table-name> [WHERE ...]"
+
+			A) Note: Wildcard can be used in <field-name> for retrieving alla available
+			fields in a given table.
+
+		Ex.: - SELECTING ALL FIELDS FROM A GIVEN TABLE -
+			$ sqlite3 ./db.sqlite3 "SELECT * FROM users"
+
+		CHANGING MODE OF THE RETURNING VALUE
+			Different modes can be used: 
+				ascii box c column count csv html insert jatom jobject json line list markdown
+				off psql qbox quote split table tabs tcl batch tty
+
+			Example:
+				$ sqlite3 ./test.sqlite3 ".mode json" "SELECT * FROM users"
+	
+	LISTING ALL AVAILABLE TABLES IN A DATABASE USING SQLITE3
+		$ sqlite3 ./db.sqlite3 ".tables"
+	
+	LISTING SCHEMA USED TO BUILD THE DATABASE IN SQLITE3
+		$ sqlite3 ./db.sqlite3 ".schema"
+	
+	PRACTICAL SCENARIOS
+		CREATING A BASIC DATABASE FOR STORING PUBLIC, PRIVATE AND SHARED KEYS FOR MULTIPLE USERS
+			In this example, a database is created for managing private, public and shared keys.
+
+			The below query statement creates 3 tables 'users', 'keys', 'shared_keys' and 'login'.
+				1 - The 'users' table hold personal information about users on the system.
+				2 - The 'login' table holds username and password for given users,
+				a user can have multiple accounts as he desires and because of this, both username and a foreign key
+				is used as primary keys.
+
+				3 - The 'keys' table can optionally store either private/public security key files; this table has
+				id field and a foreign key that references the table 'users' as primary keys, creating an ownership relationship
+				between the key and the owner to whom it belongs.
+
+				4 - The 'shared_keys' table exists so that security keys can be shared among other users.
+				ex.: a public key that validates signatures or encrypts data can be directly shared among users on the system.
+
+				5 - The 'keys_relation' table allows to register a security key that belongs to another security key.
+				ex.: A Master key can contain many subordinate keys. However, a Subordinate key can belong to only one master key.
+
+				Things to take in consideration:
+					On this database, we don't care whether security key BLOB/files are replicated or duplicated for different users.
+					Multiple users can backup the shared security key files as their own key and choose to share or not to share it.
+					A single user can have many different login accounts and upload the same security key files.
+
+					The database works as a repository to store, backup and share security keys.
+
+				$ sqlite3 ./key_db.sqlite3 "\
+				CREATE TABLE users (id INTEGER PRIMARY KEY, name TEXT, description TEXT);\
+				CREATE TABLE login (username TEXT, user_id INTEGER REFERENCES user(id), password TEXT, PRIMARY KEY(username, user_id));\
+				CREATE TABLE keys (id INTEGER, owner_id TEXT REFERENCES login(username),\
+					security_key BLOB, description TEXT, PRIMARY KEY(id, owner_id));\
+				CREATE TABLE shared_keys (key_id INTEGER REFERENCES keys(id), shareholder_id TEXT REFERENCES login(username), \
+					PRIMARY KEY (key_id, shareholder_id));\
+				CREATE TABLE keys_relation (master_key_id INTEGER REFERENCES keys(id), subordinate_key_id INTEGER REFERENCES keys(id),\
+				UNIQUE(subordinate_key_id), PRIMARY KEY(master_key_id, subordinate_key_id));\
+				"
+
+SED - STREAM EDITOR FOR FILTERING AND TRANSFORMING TEXT
+	TODO
+
+------
+------
+------
+------
 JQ - THE COMMANDLINE JSON PROCESSOR
 	The commandline tool 'jq' can be used both for accessing and and persisting data objects.
 
@@ -9159,7 +9258,7 @@ note.: not in order, use search function to find it:
 	*rclone, split, dar, tar, par2 (par2cmdline).
 	*strace, filelock-touch, filelock-create, filelock-check, filelock-remove, strace, nohup.
 	nice, renice, shellcheck, tcpdump, pushd, dirs, popd, pwd, pinky, finger, at.
-	zoxide, fzf, television,
+	zoxide, fzf, television, yazi, broot, wireshark,
 
 	look later:
 		dircolors for setting colors to 'ls'

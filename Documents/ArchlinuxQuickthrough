@@ -1175,8 +1175,21 @@ USE LICENSE:
 
 --MISCALENEOUS A:
 	SQLITE3 - A COMMAND LINE INTERFACE FOR SQLITE VERSION 3
+		CREATING A DATABASE IN SQLITE3
+		CREATING A TABLE IN SQLITE3
+		INSERT VALUE INTO A DATABASE TABLE USING SQLITE3
+		SELECTING VALUES FROM A GIVEN TABLE USING SQLITE3
+			CHANGING MODE OF THE RETURNING VALUE IN SQLITE3
+		MAPPING A TABLE TO A JSON OBJECT TO BE USED WITH 'JQ' USING SQLITE3
+		LISTING ALL AVAILABLE TABLES IN A DATABASE USING SQLITE3
+		LISTING SCHEMA USED TO BUILD THE DATABASE IN SQLITE3
+		PRACTICAL SCENARIOS
+			CREATING A BASIC DATABASE FOR STORING PUBLIC, PRIVATE AND SHARED KEYS FOR MULTIPLE USERS
+
 	SED - STREAM EDITOR FOR FILTERING AND TRANSFORMING TEXT
+
 	JQ - THE COMMANDLINE JSON PROCESSOR
+		READING JSON FROM ENVIRONMENT VARIABLE USING JQ
 		CREATING A SIMPLE JSON OBJECT USING JQ
 		CREATING A MULTI-VALUED FIELD USING JQ
 		CREATING NESTED OBJECTS USING JQ - PART 1
@@ -6726,6 +6739,11 @@ git reflog example:
 ------
 ------
 SQLITE3 - A COMMAND LINE INTERFACE FOR SQLITE VERSION 3
+	'sqlite3' can be used to persist data on disk using Structured Query Language.
+
+		A) Note: 'litecli' can be used for adding support to auto-completion and syntax highlighting
+		on sqlite3 interactive-mode.
+
 	CREATING A DATABASE IN SQLITE3
 		The command below will create the named database and switch to sqlite3's interactive mode:
 			$ sqlite3 <database-name>
@@ -6761,7 +6779,7 @@ SQLITE3 - A COMMAND LINE INTERFACE FOR SQLITE VERSION 3
 		Ex.: - SELECTING ALL FIELDS FROM A GIVEN TABLE -
 			$ sqlite3 ./db.sqlite3 "SELECT * FROM users"
 
-		CHANGING MODE OF THE RETURNING VALUE
+		CHANGING MODE OF THE RETURNING VALUE IN SQLITE3
 			Different modes can be used: 
 				ascii box c column count csv html insert jatom jobject json line list markdown
 				off psql qbox quote split table tabs tcl batch tty
@@ -6769,6 +6787,45 @@ SQLITE3 - A COMMAND LINE INTERFACE FOR SQLITE VERSION 3
 			Example:
 				$ sqlite3 ./test.sqlite3 ".mode json" "SELECT * FROM users"
 	
+	MAPPING A TABLE TO A JSON OBJECT TO BE USED WITH 'JQ' USING SQLITE3
+		Using command substitution, it's possible to map a database table directly to a json object:
+
+			1) Create the database and add values to it:
+				$ sqlite3 ./person.sqlite3 "CREATE TABLE person (id INTEGER PRIMARY KEY, name TEXT, address TEXT)";
+
+			2) Insert new values to it:
+				$ sqlite3 ./person.sqlite3 "INSERT INTO person (name,address) VALUES ('paul', 'address 01')";\
+				  sqlite3 ./person.sqlite3 "INSERT INTO person (name,address) VALUES ('bob', 'address 02')";
+
+			2) Export desired table to environment variable:
+				$ export JSON_USERS=$(sqlite3 ./person.sqlite3 ".mode json" "SELECT * FROM person");
+					or
+				$ set -gx JSON_USERS $(sqlite3 ./person.sqlite3 ".mode json" "SELECT * FROM person");
+
+
+				A) Note: if you're on fish shell, use 'set -gx' instead for exporting.
+
+			3) Access mapped data:
+				 $ jq -n 'env.JSON_USERS | fromjson | .';
+				 	or
+				 $ jq -n 'env.JSON_USERS | fromjson | .[].id';
+				 	or
+				 $ jq -n 'env.JSON_USERS | fromjson | .[].name';
+				 	or
+				 $ jq -n 'env.JSON_USERS | fromjson | .[].address';
+
+
+			A) Note: Main advantage is the programmer doesn't have to manually map database tables/entities to actual
+			objects field-by-field. Any query can be easily mapped to a JSON object for easy access.
+
+			B) Note: Shell languages like bash, fish, zsh do not offer classes nor objects with private/public fields.
+			using 'sqlite3' and 'json' is a cheap way of achieving that; these 'fields' can then be used as arguments
+			to specialized generic methods that can deal with those values from that object.
+
+			READ MORE ON THE FOLLOWING TOPIC:
+				JQ - THE COMMANDLINE JSON PROCESSOR
+					READING JSON FROM ENVIRONMENT VARIABLE USING JQ
+
 	LISTING ALL AVAILABLE TABLES IN A DATABASE USING SQLITE3
 		$ sqlite3 ./db.sqlite3 ".tables"
 	
@@ -6826,6 +6883,27 @@ JQ - THE COMMANDLINE JSON PROCESSOR
 		links:
 			https://jqlang.org/manual/
 			https://developer.zendesk.com/documentation/integration-services/developer-guide/jq-cheat-sheet/#getting-an-object-property
+
+	READING JSON FROM ENVIRONMENT VARIABLE USING JQ
+		It's possible to read json data from environment variables.
+		because of this reading json data from other programs like 'sqlite3' through the use of
+		command substitution is also an option.
+
+		A) Note: If you're on fish shell, export with 'set -gx' instead.
+
+			$ export JSON_VAR='{ "name":"person001", "address":"address001" }';\
+			  jq -n 'env.JSON_VAR | fromjson | .name'
+
+					-- or --
+
+			$ export JSON_VAR='{ "name":"person001", "address":"address001" }';\
+			  jq -n --argjson data "$JSON_VAR" '$data.name'
+		  		
+		B) 2nd form treats json as a raw object.
+
+
+		READ MORE ON THE FOLLOWING TOPIC:
+			MAPPING A TABLE TO A JSON OBJECT TO BE USED WITH 'JQ' USING SQLITE3
 
 	CREATING A SIMPLE JSON OBJECT USING JQ
 		Each new object is capable of containning multiple fields and values:

@@ -1167,7 +1167,8 @@ USE LICENSE:
 				CREATE THE FILE USING NVIM OR NOTEPAD
 				ALLOWING SCRIPTS TO BE EXECUTED BY POWERSHELL
 
-	---TROUBLESHOOTING WINDOWS
+	---TROUBLESHOOTING WINDOWS | TROUBLESHOOTING WSL | WSL TROUBLESHOOTING
+		AUDIO DISCONNECTING FOR WSL
 		GPU HARDWARE ACCELERATION CRASHES | WSL CRASHING INTERMITENTLY
 		HOW TO FIX USB DEVICE NOT DETECTED
 		RE-ENABLING WINDOWS AUTO-UPDATE
@@ -1231,7 +1232,7 @@ USE LICENSE:
 		FISH HISTORY FILE
 		RUNTIME CONFIGURATION FILES FOR FISH
 			RE-LOADING RUNTIME CONFIGURATION FILE
-			MY CUSTOM RUNTIME CONFIGURATION FILE
+			MY CUSTOM RUNTIME CONFIGURATION FILE FOR FISH
 		FUNCTION CONFIGURATION FILES FOR FISH
 		SCRIPT PRE-LOADING PATH FOR FISH
 		FISH SCRIPTING 
@@ -1448,6 +1449,8 @@ USE LICENSE:
 	USING 'DD' FOR ATTACHING A FILE AS PART OF A SPARSE FILE
 	SETTING UP WRAPER FOR 'RM', 'SUDO' AND 'RUN0' COMMAND
 	SETTING UP COLORS FOR MAN PAGES | MAN PAGE CUSTOM THEME
+
+	LIST OF KNOWN FILESYSTEM AND MEDIA FORMATS FOR CD, DVD AND BLUE RAY DISCS
 
 	SETTING UP LUKS ENCRYPTION ON A STORAGE DEVICE
 		LUKS VS FSCRYPT VS GOCRYPTFS
@@ -1905,6 +1908,12 @@ New Syntax(2023):
 ====================================================================================================
 ========================================S-CHANGELOG=================================================
 ====================================================================================================
+
+-015
+		LIST OF KNOWN FILESYSTEM AND MEDIA FORMATS FOR CD, DVD AND BLUE RAY DISCS
+		--NEW MPV.CONF FILE HAS BEEN ADDED
+		GPU HARDWARE ACCELERATION CRASHES | WSL CRASHING INTERMITENTLY
+		AUDIO DISCONNECTING FOR WSL
 
 -014
 		SQLITE3 - A COMMAND LINE INTERFACE FOR SQLITE VERSION 3
@@ -7294,7 +7303,7 @@ FISH - THE FRIENDLY INTERACTIVE SHELL
 		RE-LOADING RUNTIME CONFIGURATION FILE
 			$ source ~/.config/fish/config.fish
 
-		MY CUSTOM RUNTIME CONFIGURATION FILE
+		MY CUSTOM RUNTIME CONFIGURATION FILE FOR FISH
 			[file: ~/.config/fish/config.fish ]
 				function set_gdk_theme
 					if test -z $GDK_SCALE
@@ -7304,17 +7313,58 @@ FISH - THE FRIENDLY INTERACTIVE SHELL
 					end
 				end
 
+				function set_dbus_realpath
+					#This function is part of dbus_launcher_function()
+					#This function tries to discover the path to an existing DBUS_SESSION using the previously created PID.
+					#When this PID doesn't exists in /proc/, $dbus_realpath contents will be left empty, allowing dbus_launcher_function
+					#to create a new dbus session using /bin/dbus-launch in dbus_launcher_function().
+					#When the set_dbus_realpath doesn't resolves $dbus_realpath to the same path as /bin/dbus-daemon,
+					#dbus_launcher_function() will then procede and create a new dbus-session.
+					#The case above can happen when a process already exists under the same PID but is not a dbus-daemon process OR
+					#when the PID doesn't exists as a process at all.
+					#After the session is created, the function set_dbus_realpath() is called again for setting up $dbus_realpath
+					#to indicate that the session has already been created succesfully.
+					#A new Dbus session will only be created under the exact described conditions, either when it doen't exists
+					#or when it's been invalidated.
+
+					if test -z "$dbus_realpath"
+						set -gx dbus_realpath "$(realpath /proc/$DBUS_SESSION_BUS_PID/exe)";
+					end
+				end
+
 				function dbus_launcher_function
-					set -gx dbus_realpath $(realpath /proc/$DBUS_SESSION_BUS_PID/exe >/dev/null 2>&1)
+					#This function exists because WSL doesn't creates dbus sessions for secondary users.
+					set_dbus_realpath;
 
 					if not test "/usr/bin/dbus-daemon" = "$dbus_realpath"
 						set -Ux dbus_global_var $(dbus-launch);
-						set -Ux DBUS_SESSION_BUS_ADDRESS "$(echo $dbus_global_var[1] | cut -d '=' -f 2-100)"
-						set -Ux DBUS_SESSION_BUS_PID "$(echo $dbus_global_var[2] | cut -d '=' -f 2-100)"
+						if test $status = 0
+							set -Ux DBUS_SESSION_BUS_ADDRESS "$(echo $dbus_global_var[1] | cut -d '=' -f 2-100)";
+							set -Ux DBUS_SESSION_BUS_PID "$(echo $dbus_global_var[2] | cut -d '=' -f 2-100)";
+							set_dbus_realpath;
+						end
+					end
+				end
+
+				function xdg_runtime_dir_init
+					#This function exists because WSL doesn't creates XDG_RUNTIME_DIR for secondary users.
+					#This can be an issue for display servers like Wayland and audio servers like Pipewire.
+
+					#Checks if the $XDG_RUNTIME_DIR variable is empty and sets if it's empty:
+					if test -z $XDG_RUNTIME_DIR
+						set -gx XDG_RUNTIME_DIR "/tmp/$(id -u)-runtime-dir"
+					end
+
+					#Creates $XDG_RUNTIME_DIR if it doesn't exists:
+					if not test -d "$XDG_RUNTIME_DIR"
+						mkdir -p "$XDG_RUNTIME_DIR";
+						chmod 0700 "$XDG_RUNTIME_DIR";
 					end
 				end
 
 				function create_abbreviations
+					#Chromium and Firefox abbreviations are only here because WSL can often cause crashes
+					#when GPU Acceleration is enabled for the virtual machine. This can happen due to driver issue.
 					if not abbr --query created_abbreviations
 						abbr --add eza "eza --icons=always --color=always";
 						abbr --add yay "yay --color=always";
@@ -7339,6 +7389,7 @@ FISH - THE FRIENDLY INTERACTIVE SHELL
 					set_gdk_theme;
 					dbus_launcher_function;
 					create_abbreviations;
+					xdg_runtime_dir_init;
 				end
 			[/file]
 
@@ -10964,8 +11015,7 @@ mount:
 											^ From an offset on the given block device(fdisk -l ./archlinux_vm.raw)
 											^ offset=Sector_Size*Device_Start_Sector
 											^ loop devices are block devices that maps it's data blocks into a regular file into a
-											^ filesystem or another block device
-			VERY IMPORTANT: do not allow 'journaling filesystems' on loop devices, it will break write order.
+											^ filesystem or another block device.
 #losetup -a					#Lists all loop-devices
 #losetup /dev/loop2 ./android_vm.raw		#Atach a file to a loop device | Create a loop device.
 #losetup -D					#Detach all loop devices
@@ -15706,6 +15756,338 @@ DEFAULT DIRECTORIES AND DEFAULT FILES:
 									cache-on-disk=no
 								[/file]
 
+~/.config/mpv/mpv.conf					#Used for default mpv player settings under WSL2.
+							[file: ~/.config/mpv/mpv.conf]
+								volume=90
+								## The following disables GPU Hardware acceleration for WSL2:
+								# An alternative for 'vo=x11' is to use 'vo=sdl' instead, but the former is better than the later.
+								# 'gpu-api' can be either set to 'vulkan' or 'opengl', vulkan having support for multi-threading.
+								# 'hwdec=no' ensures GPU Hardware Acceleration is not used.
+								# 'gpu-api=opengl' is more lightweight on the CPU.
+								hwdec=no
+								vo=x11
+								gpu-api=opengl
+								#---
+								#video-sync=display-resample
+								#video-sync=display-desync
+								#video-sync=display-tempo
+								interpolation=yes
+								#tscale=linear
+								tscale=oversample
+								interpolation-preserve=no
+								target-prim=s-gamut
+								keepaspect=no
+								geometry=45%x45%+0+0
+								autofit-larger=50%x50%
+								autofit-smaller=50%x50%
+								loop=inf
+								audio-pitch-correction=no
+								#cache=yes
+								cache-on-disk=no
+
+								## Playback speed for audio/video:
+								#speed=0.833333
+
+								#-----------------------------------------------
+								##---READ THIS BEFORE APPLYING VIDEO/AUDIO FILTERS---
+								## By default, mpv applies most audio/video plugins using ffmpeg:
+								##	https://ffmpeg.org/ffmpeg-filters.html
+								##	https://github.com/mpv-player/mpv/blob/master/DOCS/man/af.rst
+								##
+								## mpv supports both legacy filters and lavfi(ffmpeg) filters.
+								## mpv legacy filters is more lightweight on the CPU, whereas lavfi uses more CPU.
+								## if you notice slowdowns, stick to mpv legacy filters:
+								##	1 - legacy mpv filter:
+								##		vf-add=unsharp=la=1.7
+								##
+								##	2 - lavfi/ffmpeg filter:
+								##		vf-add=lavfi=[unsharp=la=2.0]
+								##
+								## keep in mind, some legacy a/v filters have been deprecated and might not work anylonger.
+
+
+								#-----------------------------------------------
+								#------PERSONAL SELECTION OF BEST AUDIO FILTERS:
+								##The order of the filters will change the audio result: 
+								af-add=lavfi=[acopy]
+								af-add=lavfi=[aemphasis]
+								af-add=lavfi=[speechnorm]
+								af-add=lavfi=[crystalizer]
+								af-add=lavfi=[aexciter]
+								#af-add=lavfi=[extrastereo]
+								#af-add=lavfi=[tremolo]
+								#af-add=lavfi=[rubberband=pitch=1.80]
+
+								## Haas Baffles sound:
+								#af-add=haas
+
+								##This syntax can also be used:
+								#af=acopy,aemphasis,speechnorm,crystalizer,aexciter,extrastereo,tremolo,rubberband
+
+
+								#-----------------------------------------------
+								#------PERSONAL SELECTION OF BEST VIDEO FILTERS:
+								## Legacy filters:
+								#vf-add=atadenoise
+								#vf-add=unsharp=la=1.6
+								#vf-add=super2xsai
+
+								## Lavfi filters:
+								vf-add=lavfi=[atadenoise]
+								vf-add=lavfi=[unsharp=la=3.5]
+								#vf-add=lavfi=[super2xsai]
+
+
+								##Telecine may cause audio desync, if you need double perceived framerate
+								# use next-gen frame generation programs like 'Lossless Scaling'.
+								#vf=telecine
+
+
+								#-----------------------------------------------
+								#------LIST OF VIDEO FILTERS:
+								#Improves the image quality of the video without making too much changes(5/5)
+								#vf=dedot
+
+								#vf=colorlevels
+
+								#Applies telecine effect which therefore creates an interlaced effect,
+								#this way doubling the perceived framerate(5/5):
+								#vf=telecine
+
+								#Applies an inverse telecine pattern effect(3/5):
+								#vf=detelecine
+
+								#Plays audio and video in reverse(5/5):
+								#vf-add=lavfi=[reverse] 
+								#af-add=lavfi=[areverse]
+
+								#Applies a dilation effect makes the video look old(5/5):
+								#vf=dilation
+
+								#Amplify changes between successive video frames making video look old(5/5):
+								#vf=amplify
+
+								#Makes video look old and degraded(5/5):
+								#vf=erosion
+
+								#Makes video look sharper without drastically blurring or smearing the image(5/5):
+								#vf=atadenoise
+
+								#Image/video sharpenner(5/5). Default value is 1.0:
+								#vf=unsharp
+
+								#Applies median effect, removing grain from video(5/5)
+								#vf=median
+
+								#Deshaking effect
+								#vf=deshake
+
+								#Sharpens the image, but causes blur and smearing(3/5)
+								#vf=guided
+
+								#Visual effect to give videos a glowing, dreamy, or bleeding-light aesthetic(5/5):
+								#(can be used as vf=inflate=threshold0:threshold1:threshold2:threshold3)
+								#can be used together with 'erosion' or 'deflate'.
+								#vf=inflate
+
+								#GPU Video filter
+								#vf=gpu
+
+								#Upscale video image using 'hqx' (3/5)
+								#(Can be used as hqx=2, hqx=3 which is a multiplier)
+								#vf=hqx=2
+
+								#Applies the kirsch effect(3/5)
+								#(similar to prewitt, roberts, pseudocolor)
+								#vf=kirsch
+
+								#Applies prewitt effect(5/5)
+								#(similar to kirsch, roberts, pseudocolor)
+								#(usage: vf=prewitt or prewitt=planes=0xf:scale=1)
+								#(valid plane values: 0x1, 0x2, 0x3, 0x4, 0x5, 0x7, 0x9, 0xa, 0xb, 0xc, 0xd, 0xe, 0xf)
+								#(scale controls how strong the effect will be applied)
+								#vf=prewitt=planes=0x9:scale=1
+
+								#Applies roberts effect(3/5)
+								#(similar to kirsch, prewitt, pseudocolor)
+								#(usage: vf=roberts or vf=roberts=planes=2)
+								#(valid planes values: 2, 3, 4, 5, 6, 7)
+								#vf=roberts=planes=2
+
+								#Applies pseudocolor effects(5/5)
+								#(similar to roberts, prewitt, kirsch)
+								#(can be used as pseudocolor=2, pseudolor=preset=magma)
+								#(available presets are: magma, inferno, plasma, viridis, turbo, cividis, spectral, cool, heat, fiery, 
+								#blues, green, helix, range1, range2, shadows, highlights, solar, nominal, preferred )
+								#vf=pseudocolor=preset=plasma
+								#vf=pseudocolor=preset=turbo
+								#vf=pseudocolor=preset=cividis
+								#vf=pseudocolor=preset=spectral
+								#vf=pseudocolor=preset=cool
+								#vf=pseudocolor=preset=heat
+								#vf=pseudocolor=preset=blues
+								#vf=pseudocolor=preset=green
+								#vf=pseudocolor=preset=helix
+								#vf=pseudocolor=preset=shadows
+								#vf=pseudocolor=preset=solar
+
+								#Applies sobel effect(5/5).
+								#vf=sobel
+
+								#Applies lag effect(3/5)
+								#vf=lagfun
+
+								#Applies convolution efect(1/5)
+								#vf=convolution
+
+								#Applies negate effect(3/5)
+								#vf=negate
+
+								#Applies pixelize effect(3/5)
+								#vf=pixelize
+
+								#Applies UV Swap effect(3/5)
+								#vf=swapuv
+
+								#Plays video in reverse
+								#vf=reverse
+
+								#Creates tile effect:
+								#vf=tile
+
+								#Creates tiltandshift effect:
+								#vf=tiltandshift
+
+								#Adds the effect the video is old:
+								#vf=tmidequalizer
+
+								#Adds lag effect:
+								#vf=tmix
+
+								#Vague denoiser:
+								#vf=vaguedenoiser
+
+								#vf=shufflepixels
+								#vf=smartblur
+								#vf=stereo3d
+								#vf=super2xsai
+								#vf=spp
+								#vf=tblend
+
+								#--
+								#vf=uspp
+								#vf=frei0r #renamed?
+								#vf=gblur
+								#vf=fspp
+								#vf=huesaturation
+								#vf=geq
+								#vf=pp7
+								#vf=shuffleframes
+								#vf=shuffleplanes
+								#vf=sab
+								#vf=scale
+								#vf=scdet
+								#vf=sr_amf
+								#vf=tinterlace
+								#vf=tlut2
+								#vf=vapoursynth
+								#vf=zoompan
+								#--
+
+
+								#-----------------------------------------------
+								#------LIST OF AUDIO FILTERS:
+
+								#Disables pitch correction on media speed ups/downs:
+								#audio-pitch-correction=no
+
+								#Copies audio unchanged from input/source to output/destination(5/5):
+								#af=acopy
+
+								#Speech Normalizer lessens the effect of audio speed ups/downs without completely correcting the pitch(3/5):
+								#af=speechnorm
+
+								#Rubberband effect helps preserving the exact pitch on media speed ups/downs:
+								#af=rubberband
+
+								#Changes pitch without changing speed
+								#af=lavfi=[rubberband=pitch=1.80]
+
+								#Audio Exciter synthesizes new overtones and adds controlled, (5/5)
+								#subtle harmonic distortion to a signal to make it sound brighter and more present:
+								#af=aexciter
+
+								#Applies flanging effect to audio(3/5):
+								#af=flanger
+
+								#Adds tremolo effect to audio(3/5).
+								#(similar to aphaser, apulsator and flanger).
+								#af=tremolo
+
+								#Dynamic Equalizes different sound levels
+								#af=adynamicequalizer
+
+								#Adds echo to sound by looping the sound:
+								#af=aecho
+
+								#Loops audio samples:
+								#af=aloop 1
+
+								#Audio Emphasis(aemphasis) enhances song over other sounds
+								#(can be used in combination with 'speechnorm', 'crystalizer', 'aexciter', 'haas', 'extrastereo') (5/5):
+								#af=aemphasis
+								#af=speechnorm
+								#af=crystalizer
+								#af=aexciter
+								#af=haas
+								#af=extrastereo
+
+								#Boosts voice over song(5/5):
+								#(Note: af=speechnorm=e=4:p=0.4 can also be used)
+								##af=speechnorm
+
+								#Applies phasing effect to audio, similar to flanger but has a weaker effect and therefore less noticeable(3/5)
+								#(requires increasing audio volume a bit):
+								#af=aphaser
+
+								#Adds pulsing effect to audio in-between left and right side(1/5).
+								#af=apulsator
+
+								#Adds vibrato effect to audio(3/5):
+								#af=vibrato
+
+								#Adds chorus effect(2/5)
+								#(requires increasing audio volume a bit):
+								#af="chorus=0.5:0.9:50|60|40:0.4|0.32|0.3:0.25|0.4|0.3:2|2.3|1.3"
+
+								#Adds crystalizing effect(5/5):
+								#af=crystalizer
+
+								#Adds Haas Stereo Enhancer(5/5):
+								#af=haas
+
+								#Adds earwax effect Widenning the stereo image(1/5):
+								#af=earwax
+
+								#Increases difference between stereo audio channels(4/5):
+								#af=extrastereo
+
+								#Enhances dialogue in audio without downgrading the rest of the audio:
+								#af=dialoguenhance
+
+
+								#-----------------------------------------------
+								##NEVER USED:
+								## Splits audio into per-band streams. Requires two pads:
+								#af=acrossover
+
+								#Merge two different audio streams into a single multi-channel stream
+								#af=amerge
+
+								#Audio Mixing
+								#af=amix
+							[/file]
+
 /etc/modprobe.d/					#Used for probing existing Linux Kernel modules
 								ex.:	[file: /etc/modprobe.d/nvidia.conf]
 										options nvidia-drm modeset=1 fbdev=1
@@ -18284,11 +18666,10 @@ CREATING A ZFS PARTITION
 if you ever use a partition for ZFS, make sure to create only one pool for each disk.
 2nd option is to create a loop device that will look like a disk for ZFS, check following section on how to create a loop device first:
 
-	Read Topic: CREATING AND MOUNTING LOOP DEVICES
-		Make sure to create a loop device using qemu-img, and format it as a GPT Disk, writting the changes to the loop device.
-		Finally use ZFS as bellow to create both a pool and partition it.
-
-	VERY IMPORTANT: do not allow 'journaling filesystems' on loop devices, it will break write order.
+	Read More on the Following Topic: 
+		CREATING AND MOUNTING LOOP DEVICES
+			Make sure to create a loop device using qemu-img, and format it as a GPT Disk, writting the changes to the loop device.
+			Finally use ZFS as bellow to create both a pool and partition it.
 
 1. Install ZFS DKMS Modules and ZFS Utils
 	1.1 - Install ZFS DKMS Modules and ZFS Utils
@@ -20099,8 +20480,6 @@ sinze it allows a recovery password to be set.
 ================================================================================
 ================================================================================
 CREATING A LUKS ENCRYPTED LOOP DEVICE USING DM-CRYPT
-
-VERY IMPORTANT: do not allow 'journaling filesystems' on loop devices, it will break write order.
 
 1) Create a file with a size larger than 20MB for storage(dm-decrypt requires 13MB):
 	$ cd ~;
@@ -22369,19 +22748,50 @@ please read "ENABLING FAST COMMIT OPTION ON EXT4 FILESYSTEMS" topic!
 ================================================================================
 ================================================================================
 CREATING AND MOUNTING LOOP DEVICES
-	VERY IMPORTANT: do not allow 'journaling filesystems' on loop devices, it will break write order.
-
-	Note.: If you want to: step #2 and #3 can be skipped and postponed,
+	Note 1: Optionally step #2 and #3 can be skipped and postponed in the STEPS SECTION below,
 	the fdisk in step #3 can be used as soon as step #1 is finished for partitioning disks,
 	in this case step #5 can be replaced with: #losetup --partscan -f <filename>.
 
-	Note2.: Once the loop device is created, partitioned and formated, it's not needed to use losetup for setting up a loop device anymore,
+	Note 2: Once the loop device is created, partitioned and formated, it's not needed to use losetup for setting up a loop device anymore,
 	you can just mount the file using mount -t ext4, however this is only possible if there's no more than just 1 partition in 
-	the loop device. In this case, and only in this case loop devices will be automatically mounted.
+	the loop device. In this case, and only in this case loop devices will be automatically mounted. Read more on 'Note 4' and 'Note 5'.
 
-	Note3.: Do not mount a loop device if you're going to use it on a virtual machine.
+	Note 3: Do not mount a loop device if you're going to use it on a virtual machine or if it's already in use by a VM.
+
+	Note 4: If you just want to mount multiple existing partitions on an existing loop device, use this:
+		# kpartx -av ./file.img
+			or
+		# losetup -fP --show image.img
+
+			and
+
+		# mount -m /dev/loop0p1 /mnt/loop0p1
+		# mount -m /dev/loop0p2 /mnt/loop0p2
+		# mount -m /dev/loop0p3 /mnt/loop0p3
+
+		Note A: 'kpartx -av' will automatically setup new loop-devices for every existing partition
+		and print each existing partition as a new device under /dev/ which can then be mounted manually
+		using 'mount'.
+
+		Note B: After finishing all tasks and umounting the partitions, the user can simply use
+		'kpartx' or 'losetup' for automatically dettaching all existing loop-devices:
+			# kpartx -d ./file.img
+				or
+			# losetup -d ./file.img
+				or
+			# losetup -D
+
+			Note: the 3rd form 'losetup -D' detaches all loop devices.
+
+	Note 5: If you just want to mount loop device that contains only one single partition, you can simply use this:
+		# mount -m -o loop ./file.img /mnt/loop0p1
+
+		Options:
+			-m : automatically creates directory if it doesn't exist.
+			-o : specify that file.img is a loop device.
 
 --
+	STEPS SECTION
 0. note: the letter '(A)' describes the easy way to create a loop-device.
 
 1. CREATE A FILE TO BE USED AS LOOP-DEVICE, SIZE 1GB (A) | USING DD TO CREATE A LOOP DEVICE FILE
@@ -22399,7 +22809,7 @@ CREATING AND MOUNTING LOOP DEVICES
 					or
 				$ dd if=/dev/zero of=<filename> bs=10G count=1 conv=sparse
 
-				Note: this allows creating loop devices as big as 1000GB without using the entire
+				Note: this allows creating sparse loop devices as big as 1000GB without using the entire
 				disk space.
 			
 		IMPORTANT NOTE 1: For shrinking or extending an already existing loop device, make sure that
@@ -22571,6 +22981,9 @@ using umount on the folder and the loop-device will be umounted automatically:
 
 	In case of doubt, use 'lsblk' to list block, loop and bind devices on the system
 	to make sure you're umounting the right devices and finally dettaching the loop device.
+
+---
+---
 ---
 Personal Notes | VERY IMPORTANT:
 	Using loop devices is important, it allows the system administrator to create virtual partitions using files without unmounting the actual real disks for partitioning and formatting. This loop device file can then be stored in a USB Pen-Drive separately or copied as a block so that it's contents and characteristics become the contents and characteristics of the real disk. The virtual partitions can be used to private data which will be hidden from the rest of the system and that only the user knows where it is, what it does and how to mount it. Block Encryption of the entire loop-device file can also be used, passwords can be set for mounting/unmounting and reading/writing data to it without exposing it's interface onto the real disk(s) partition table.
@@ -35379,7 +35792,6 @@ TODO #42:
 TODO #43
 	yay -P --stats
 
-
 TODO #44:
 	NEW HARD DRIVE TOOL:
 	udiskctl can be used to mount removable medias, udiskie to automount them.
@@ -35612,8 +36024,26 @@ VERY IMPORTANT:
 	https://gitlab.archlinux.org/groups/archlinux/packaging/packages/-/issues/?sort=created_date&state=opened&search=crash&first_page_size=20
 
 USEFUL LINKS TO CHECK:
+	https://github.com/ventoy/Ventoy				# (Windows/Linux) Can create bootable USB Storage Drives from multiple .iso images,
+									allowing more than one live operating system to be copied into it for live booting.
+									More operating systems can be added and appended to an already ventoy configured USB Device.
+									Ventoy also has support for a live mode, the live mode allows system boot for
+									creation and management of ventoy's bootable medias.
+
+	https://www.whonix.org/						#WhonixOS is a Debian Fork specialized in Security, meant to be used as Standalone,
+									within Virtual Machines or as a plug-and-play operating system via USB. It also provides a live
+									mode with a full-reset support upon system shutdown, system crashes and system reboot.
+
+	https://tails.net						#Tails OS is a portable debian fork dedicated towards privacy and security.
+									Note: installing archlinux packages and accessing AUR packages can be easily done
+									through Distrobox.
+
 	https://pairdrop.net						#Web Service Cross-platform version of magic-wormhole
 	https://limewire.com						#Web Service for sharing temporary files anonymously(up to 4GB, 7days)
+
+	https://github.com/FunkyFr3sh/cnc-ddraw				#Modern DirecDraw API for old 2D Games.
+									^ Enables 2D Games to run on modern operating systems.
+
 	https://ntcore.com/4gb-patch/					#4GB Patcher for x86 programs
 									^ useful for 32bits software that require lots
 									of RAM and may end up crashing when going above
@@ -35671,28 +36101,18 @@ USEFUL LINKS TO CHECK:
 		https://winworldpc.com/product/microsoft-windows-boot-disk/98-se
 	
 	STUDY LINKS:
-		https://en.wikipedia.org/wiki/Percent-encoding	#Percent Encoding
-		https://en.wikipedia.org/wiki/Alt_code		#Alt Code
+		https://en.wikipedia.org/wiki/Percent-encoding		#Percent Encoding
+		https://en.wikipedia.org/wiki/Alt_code			#Alt Code
 		https://en.wikipedia.org/wiki/Character_encoding	#Code Pages, Code Units, Code Points
 		https://en.wikipedia.org/wiki/Code_point		#Code Point
 		https://en.wikipedia.org/wiki/Wide_character		#Wide Char
 		https://stackoverflow.com/questions/367633/what-are-all-the-common-undefined-behaviours-that-a-c-programmer-should-know-a	#List of C/C++ Undefined Behavior
-		https://en.cppreference.com/w/cpp/language/ub	#More C/C++ Undefined Behavior
-		https://en.cppreference.com/w/cpp/types/size_t	#Size_T data type can be used on very big loop iterations
-		https://en.cppreference.com/w/cpp/types/climits	#C/C++ Numeric Limits Interface
-		https://en.cppreference.com/w/cpp/types/integer	#Fixed width integer types
+		https://en.cppreference.com/w/cpp/language/ub		#More C/C++ Undefined Behavior
 
-MISC STUFF:
-AI / ARTIFICIAL INTELLIGENCE: 
-	https://stablediffusionweb.com/ - Generates images from text models, it can create photo-realistic images based on text-data.
-	https://civitai.com/ - AI Database, contains both models that can be fed to AI engines.
--------
--------
-tmp:
-cd <Folder_Containning_HDImages>;
-ls ./ | awk '{system("file="$0"; rm ../${file%%.*}.*")}'
+	AI / ARTIFICIAL INTELLIGENCE: 
+		https://stablediffusionweb.com/ - Generates images from text models, it can create photo-realistic images based on text-data.
+		https://civitai.com/ - AI Database, contains both models that can be fed to AI engines.
 
----------------------
 ---------------------
 ---------------------
 ---------------------
@@ -39300,51 +39720,43 @@ SOME BROOT FILE EXPLORER
 					[file: C:\Users\<USERNAME>\.wslconfig ]
 						[wsl2]
 						kernel="C:\\Users\\User\\.wsl-kernel\\bzImage"
-						swap=0
-						memory=15GB
+						swap=4GB
+						memory=17GB
+						##Disabling GPU Acceleration will help for non vt-d CPUs
+						##Since it may cause intermitent crashes.
+						gpuSupport=false
 
-						##Defaults to true - this doesn't work anymore:
-						#localhostForwarding=true
+						##Defaults to true:
+						#localhostForwarding=true - Doesn't works - 
 
-						##Defaults to 'false' - allows windows firewalling on WSL:
+						##Defaults to 'false' - allows windows firewalling on WSL - ENABLE THIS FOR SERVERS:
 						#firewall=true
 
-						##Defaults to 'false' - Changes how DNS requests are proxied 
-						##from WSL to Windows.
-						## - ENABLE THIS FOR SERVERS
+						##Defaults to 'false' - Changes how DNS requests are proxied from WSL to Windows. - ENABLE THIS FOR SERVERS
 						#dnsTunneling=true
 
-						##Defaults to 'false' - Enforces WSL to use Windows HTTP 
-						##proxy information.
-						## - ENABLE THIS FOR SERVERS
+						##Defaults to 'false' - Enforces WSL to use Windows HTTP proxy information. - ENABLE THIS FOR SERVERS
 						#autoProxy=true
 
-						##If the value is mirrored then this turns on mirrored networking mode.
-						##Default or unrecognized strings result in NAT networking. 
-						##Default value is NAT.
-						## - ENABLE THIS FOR SERVERS
+						##If the value is mirrored then this turns on mirrored networking mode. - ENABLE THIS FOR SERVERS
+						##Default or unrecognized strings result in NAT networking. Default value is NAT.
 						#networkingMode=mirrored
 
-						##Defaults to 'null' - Only applicable when experimental.networkingMode 
-						##is set to 'mirrored'. Specifies which ports Linux applications can 
-						##bind to, even if that port is used in Windows. This enables 
-						##applications to listen on a port for traffic purely within Linux,
-						##so those application are not blocked even when that port is used
-						##for other purposes on Windows. For example, WSL will allow bind to
-						##port 53 in Linux for Docker Desktop, as it is listening only to
-						##requests from within the Linux container. Should be formatted in
-						##a comma seperated list, e.g: 3000,9000,9090
-						## - this doesn't work anymore:
-						#ignoredPorts=20,21
+						##Defaults to 'null' - Only applicable when experimental.networkingMode is set to 
+						##'mirrored'. Specifies which ports Linux applications can bind to, even if that port is used
+						##in Windows. This enables applications to listen on a port for traffic purely within
+						##Linux, so those application are not blocked even when that port is used for other
+						##purposes on Windows. For example, WSL will allow bind to port 53 in Linux for
+						##Docker Desktop, as it is listening only to requests from within the Linux container. 
+						##Should be formatted in a comma seperated list, e.g: 3000,9000,9090
+						#ignoredPorts=20,21 - doesnt works - 
 
-						##Defaults to 'true' - Only applicable when experimental.networkingMode
-						##is set to 'mirrored'. When set to true, will allow the Container to
-						##connect to the Host, or the Host to connect to the Container, 
-						##by an IP address that's assigned to the Host. Note that the 
-						##127.0.0.1 loopback address can always be used - this option allows for
+						##Defaults to 'true' - Only applicable when experimental.networkingMode is set
+						##to 'mirrored'. When set to true, will allow the Container to connect to the Host,
+						##or the Host to connect to the Container, by an IP address that's assigned to the Host.
+						##Note that the 127.0.0.1 loopback address can always be used - this option allows for
 						##all additionally assigned local IP addresses to be used as well.
-						## - this doesn't work anymore:
-						#hostAddressLoopback=true
+						#hostAddressLoopback=true - Doesn't works
 					[/file]
 
 			2) WSL also creates some configuration files after installing any linux distribution:
@@ -49640,11 +50052,28 @@ SOME BROOT FILE EXPLORER
 
 
 	---TROUBLESHOOTING WINDOWS
+		AUDIO DISCONNECTING FOR WSL
+			'ctrl + shift + i' -> click on 'System' -> click on 'Audio' -> got to 'Advanced' and click on 'More Audio Options/Settings'
+			-> Select your default speaker device, then right-click it and click 'properties' -> Click on 'Advanced' -> Disable 'Exclusive Mode'
+			by unchecking all the options related to the exclusive mode -> Finally, restart WSL by shutting it down 'wsl --shutdown' and
+			restarting your linux distro.
+
+			ADDING LINUX USER TO AUDIO AND VIDEO GROUPS
+				# usermod -aG audio,video <username>
+
 		GPU HARDWARE ACCELERATION CRASHES | WSL CRASHING INTERMITENTLY
 			Some programs may cause WSL2 to crash and freeze,
 			Disabling GPU Acceleration within those programs that cause crash will solve the issue.
 		
 			The issue can arise from using Old GPU/Old GPU Drivers within WSL2.
+
+			Instead of disabling GPU Acceleration for each program, it's possible to disable it entirely from WSL,
+			by editing the ~/.wslconfig (or C:\Users\<username>\.wslconfig ) and adding the following line ON YOUR WINDOWS FILE:
+
+				[file: ~/.wslconfig ]
+					[wsl2]
+					gpuSupport=false
+				[/file]
 
 		HOW TO FIX USB DEVICE NOT DETECTED
 			Sometimes this issue can be easily fixed by disabling Power Savings for USB on Windows,
@@ -51221,6 +51650,60 @@ SETTING UP A BTRFS FILESYSTEM
 			Some tools can copy files with shared extents on, although this will only work under filesystems
 			that support shared extents:
 				$ cp --reflink=always <source> <dest>
+
+
+---------------
+---------------
+---------------
+---------------
+---------------
+LIST OF KNOWN FILESYSTEM AND MEDIA FORMATS FOR CD, DVD AND BLUE RAY DISCS
+	Normal CDs support ISO 9660 and get partial UDF support; UDF full-feature list aren't supported on CDs.
+	An enhanced version called ISO 13490 exists and can also be used for CD-R / CD-RWs.
+
+	The .iso (ISO 13490) allows backwards compatibility support with physical drivers that only give support to ISO 9660.
+
+	The .iso (ISO 9660) requires data to be burned in a single session while ISO 13490 allows the user to add files in multiple separate
+	burning sessions. It allows files to be updated, hidden or appended over time.
+
+	UDF in the other hand is fully used as a supersed version of the ISO 13490 for DVDs and Blue Ray discs.
+	The .iso format is also used for virtual drive mounting.
+
+	'Audio and Media' formats were also estabilished as a way of reading/writting data to Discs(CD/DVD/Blue Ray) so that they can be read
+	by raw media players and other devices like that didn't fully support the .iso format like old/classic cd-rom based video games:
+
+		1 - Compact Disc Digital Audio(CD-DA / Red Book format):
+			This used to be the standard for Audio CDs. It doesn't uses a filesystem and intead divides the disc into tracks mapped
+			by a TOC(Table of Contents).
+
+		2 - Compact Disc Extended Architecture(CD-ROM EX / Yellow Book format):
+			Format developed by Sony, Microsoft and Philips. It allows both Computer Data, Audio and Video to be
+			interleaved together on the same disc. The 'Yellow Book' format is an extension to the 'Red Book' format
+			that adds sector structures and advanced error correction for files, programs, and software.
+
+			The standard defines two distinct data formats:
+				A) Mode 1: Features heavy, built-in error correction and detection codes. 
+				It holds 2,048 bytes of user data per sector, making it the standard format for software programs, databases,
+				and general computer files.
+
+				B) Mode 2: Skips some error correction to provide more space, storing 2,336 bytes per sector.
+				It is used for larger, less error-sensitive files like compressed audio, images, and video.
+
+		3 - DVD-Video / DVD-Audio: 
+			Specifies a directory / file layout (containing folders like VIDEO_TS or AUDIO_TS) typically formatted on a UDF base file system.
+
+		4 - BDMV / AVCHD: 
+			Specifies directory structures for high-definition video on Blu-ray discs.
+
+		5 - El Torito:
+			It's a specification media format that allows both CDs and DVDs to be bootable at system start,
+			used often on Operating System Installation Media and System Recovery Utilities.
+
+			It's used in parallel with either an .iso, .udf or any other supported filesystem.
+			The 'el torito' specification is used by archlinux installation .iso image.
+	
+			Since USB Storage Devices work like hard disk block devices, it can simply define a UEFI Partition or a MBR Partition table 
+			to become bootable, without having to rely on 'El Torito'.
 
 
 ---------------

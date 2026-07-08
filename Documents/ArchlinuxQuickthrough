@@ -1910,6 +1910,9 @@ New Syntax(2023):
 ====================================================================================================
 
 -015
+		--UPDATE TO YAZI.TOML FILE
+		--NEW ALLSETTINGS.INI FILE HAS BEEN ADDED
+		MY CUSTOM RUNTIME CONFIGURATION FILE FOR FISH -> minor update
 		LIST OF KNOWN FILESYSTEM AND MEDIA FORMATS FOR CD, DVD AND BLUE RAY DISCS
 		--NEW MPV.CONF FILE HAS BEEN ADDED
 		GPU HARDWARE ACCELERATION CRASHES | WSL CRASHING INTERMITENTLY
@@ -15731,6 +15734,221 @@ DEFAULT DIRECTORIES AND DEFAULT FILES:
 
 								^ note: adding the module name in the /etc/mkinitcpio.conf file,
 								makes this step unnecessary, since rebuilding a kernel's initramfs will add it to the list of active modules.
+
+AllSettings.ini						#Optimal settings for old games, used by dxwrapper plugin ( https://github.com/elishacloud/dxwrapper )
+							My Personal Notes:
+								This was tested with 'Swat 2', under Windows 11 25H2.
+								May not work with all games, since it's tuned for performance instead of compatibility.
+								'Dd7to9' allows games that use directx 1 to 7 to use direct x 9.
+								'EnableDdrawWrapper' allows options from 'ddraw' section to be applied.
+								'EnableD3d9Wrapper' allows options from 'd3d9' section to be applied.
+								'D3d8to9' and 'D3d9to9Ex' can be used alongside 'Dd7to9', it will simply "convert'
+								games from using direct3d 8 to using direct3d9 and 9-ex.
+								Enabling 'D3d9on12' however will disable few options from 'd3d9' section from being used,
+								since they don't exist on Direct 3D 12.
+
+							[file: AllSettings.ini]
+								;; Config file for DirectX DLL Wrapper
+								;;
+								;; For details, see: https://github.com/elishacloud/dxwrapper/wiki/Configuration-%28advanced%29
+								;;
+								[General]
+								RealDllPath                = AUTO
+								WrapperMode                = AUTO
+								LoadCustomDllPath          = 
+								ExcludeProcess             = 
+								IncludeProcess             = 
+								RunProcess                 = 
+								WaitForProcess             = 0
+								DisableLogging             = 0
+								
+								[Plugins]
+								LoadPlugins                = 0
+								LoadFromScriptsOnly        = 0
+								
+								[Compatibility]
+								Dd7to9                     = 1
+								D3d8to9                    = 0
+								D3d9to9Ex                  = 0
+								D3d9on12                   = 0
+								DDrawCompat                = 0
+								Dinputto8                  = 0
+								DisableHighDPIScaling      = 0
+								DisableGameUX              = 1
+								EnableDdrawWrapper         = 1
+								EnableD3d9Wrapper          = 1
+								EnableDinput8Wrapper       = 0
+								EnableDsoundWrapper        = 0
+								DisableGDIGammaRamp        = 0
+								EnableOpenDialogHook       = 0
+								WinVersionLie              = off
+								WinVersionLieSP            = 0
+								ForceKeyboardLayout        = 0
+								FixPerfCounterUptime       = 0
+								ForceTermination           = 0
+								HandleExceptions           = 0
+								EnableDumpFileCreation     = 0
+								ResetScreenRes             = 0
+								SingleProcAffinity         = 0
+								
+								[Hooking]
+								DdrawHookSystem32          = 0
+								D3d8HookSystem32           = 0
+								D3d9HookSystem32           = 0
+								DinputHookSystem32         = 0
+								Dinput8HookSystem32        = 0
+								DsoundHookSystem32         = 0
+								
+								[DDrawCompat]
+								DDrawCompat20              = 0
+								DDrawCompat21              = 0
+								DDrawCompat32              = 0
+								DDrawCompatDisableGDIHook  = 0
+								DDrawCompatNoProcAffinity  = 0
+								
+								[ddraw]
+								DdrawOverrideBitMode       = 16
+								DdrawUseDirect3D9Caps      = 0
+								DdrawResolutionHack        = 0
+								DirectShowEmulation        = 1
+								
+								[Dd7to9]
+								DdrawAutoFrameSkip         = 0
+								DdrawFillSurfaceColor      = 0
+								DdrawEmulateSurface        = 0
+								DdrawEmulateLock           = 0
+								DdrawUseShadowSurface      = 1
+								DdrawKeepAllInterfaceCache = 0
+								DdrawDisableDirect3DCaps   = 0
+								DdrawAllowMultiSampling    = 0
+								DdrawForceMipMapAutoGen    = 0
+								DdrawNoDrawBufferSysLock   = 0
+								DdrawNoMultiThreaded       = 0
+								DdrawAlternatePixelCenter  = 0
+								DdrawClampVertexZDepth     = 0
+								DdrawVertexLockDiscard     = 0
+								DdrawFlipFillColor         = 0
+								DdrawEnableByteAlignment   = 1
+								DdrawFixByteAlignment      = 0
+								DdrawIntroVideoFix         = 0
+								DdrawFilterActivateApp     = 0
+								DdrawRemoveScanlines       = 0
+								DdrawRemoveInterlacing     = 0
+								DdrawReadFromGDI           = 1
+								DdrawWriteToGDI            = 1
+								DdrawEnableMouseHook       = 0
+								DdrawLimitTextureFormats   = 0
+								DdrawLimitDisplayModeCount = 0
+								DdrawCustomWidth           = 0
+								DdrawCustomHeight          = 0
+								DdrawLinearTextureFilter   = 0
+								DdrawUseNativeResolution   = 0
+								DdrawClippedWidth          = 0
+								DdrawClippedHeight         = 0
+								DdrawOverrideWidth         = 0
+								DdrawOverrideHeight        = 0
+								DdrawOverrideStencilFormat = 0
+								DdrawIntegerScalingClamp   = 0
+								DdrawMaintainAspectRatio   = 0
+								
+								[d3d9]
+								AnisotropicFiltering       = 0
+								AntiAliasing               = 0
+								EnableMultisamplingATOC    = 0
+								CacheClipPlane             = 0
+								EnvironmentCubeMapFix      = 0
+								ForceMipMapAutoGen         = 1
+								DepthBiasFactor            = 0
+								DepthBiasDropOffValue      = 0
+								LimitStateBlocks           = 0
+								ForceSingleBeginEndScene   = 0
+								EnableVSync                = 1
+								ForceVsyncMode             = 1
+								ShowFPSCounter             = 0
+								OverrideRefreshRate        = 0
+								LimitDisplayModeCount      = 0
+								CustomDisplayWidth         = 0
+								CustomDisplayHeight        = 0
+								LimitPerFrameFPS           = 0
+								EnableWindowMode           = 0
+								WindowModeBorder           = 0
+								WindowModeGammaShader      = 0
+								SetInitialWindowPosition   = 0
+								InitialWindowPositionLeft  = 0
+								InitialWindowPositionTop   = 0
+								FullscreenWindowMode       = 0
+								HideWindowFocusChanges     = 0
+								ForceExclusiveFullscreen   = 0
+								ForceMixedVertexProcessing = 1
+								ForceSystemMemVertexCache  = 0
+								UseShadowBackbuffer        = 0
+								OverrideStencilFormat      = 0
+								FlipEx                     = 0
+								SetPOW2Caps                = 0
+								EnableImgui                = 0
+								SetSwapEffectShim          = 0
+								DisableMaxWindowedMode     = 0
+								GraphicsHybridAdapter      = 0
+								
+								[FullScreen]
+								FullScreen                 = 1
+								ForceWindowResize          = 0
+								SendAltEnter               = 0
+								WaitForWindowChanges       = 0
+								LoopSleepTime              = 120
+								WindowSleepTime            = 500
+								SetFullScreenLayer         = 0
+								SetNamedLayer              = 
+								IgnoreWindowName           = 
+								
+								[dinput8]
+								DeviceLookupCacheTime      = 0
+								FilterNonActiveInput       = 0
+								FixHighFrequencyMouse      = 0
+								MouseMovementFactor        = 0
+								MouseMovementPadding       = 0
+								
+								[dsound]
+								Num2DBuffers               = 0
+								Num3DBuffers               = 0
+								ForceCertification         = 0
+								ForceExclusiveMode         = 0
+								ForceSoftwareMixing        = 0
+								ForceHardwareMixing        = 0
+								ForceHQ3DSoftMixing        = 0
+								ForceNonStaticBuffers      = 0
+								ForceVoiceManagement       = 0
+								ForcePrimaryBufferFormat   = 0
+								PrimaryBufferBits          = 16
+								PrimaryBufferSamples       = 44100
+								PrimaryBufferChannels      = 2
+								AudioClipDetection         = 0
+								AudioFadeOutDelayMS        = 20
+								FixSpeakerConfigType       = 1
+								StoppedDriverWorkaround    = 0
+								
+								[AppCompatData]
+								LockEmulation              = 0
+								BltEmulation               = 0
+								ForceLockNoWindow          = 0
+								ForceBltNoWindow           = 0
+								LockColorkey               = 0
+								FullscreenWithDWM          = 0
+								DisableLockEmulation       = 0
+								EnableOverlays             = 0
+								DisableSurfaceLocks        = 0
+								RedirectPrimarySurfBlts    = 0
+								StripBorderStyle           = 0
+								
+								[WriteMemory]
+								VerificationAddress        = 0x00000000
+								VerificationBytes          = 0x00
+								ResetMemoryAfter           = 0
+								AddressPointer             = 0x00000000
+								BytesToWrite               = 0x00
+								PatternString              =
+								BytesToWrite               = 0x00
+							[/file]
 
 ~/.config/mpv/mpv.conf					#Used for default mpv player settings
 								Ex.:
@@ -36024,11 +36242,18 @@ VERY IMPORTANT:
 	https://gitlab.archlinux.org/groups/archlinux/packaging/packages/-/issues/?sort=created_date&state=opened&search=crash&first_page_size=20
 
 USEFUL LINKS TO CHECK:
-	https://github.com/ventoy/Ventoy				# (Windows/Linux) Can create bootable USB Storage Drives from multiple .iso images,
-									allowing more than one live operating system to be copied into it for live booting.
-									More operating systems can be added and appended to an already ventoy configured USB Device.
-									Ventoy also has support for a live mode, the live mode allows system boot for
-									creation and management of ventoy's bootable medias.
+	https://github.com/elishacloud/dxwrapper			#Fixes compatibility issues with older games running on Windows 10/11
+									by wrapping DirectX dlls.
+									wiki: https://github.com/elishacloud/dxwrapper/wiki/Configuration#compatibility
+
+	https://dege.freeweb.hu						#Components for supporting old Graphics API like '3Dfx Glide' and 'Direct3D'
+									on modern systems. (dgVoodoo2).
+
+	https://github.com/ventoy/Ventoy				#(Windows/Linux) Can create bootable USB Storage Devices from multiple .iso images,
+									allowing more than one live operating system to be copied/appended into it for live booting.
+									More operating systems can be added/appended as time passes without without the need to format.
+									Ventoy also has a live mode image, the live mode image allows the system boot to boot
+									solely for the creation and management of ventoy's bootable medias.
 
 	https://www.whonix.org/						#WhonixOS is a Debian Fork specialized in Security, meant to be used as Standalone,
 									within Virtual Machines or as a plug-and-play operating system via USB. It also provides a live
@@ -36055,7 +36280,7 @@ USEFUL LINKS TO CHECK:
 	https://www.gpg4win.org/					#OpenPGP for Windows
 	https://genr8rs.com/Generator/Fun/LeetSpeakGenerator		#L33t speak generator
 	http://tinycorelinux.net/welcome.html				#Tiny Core Linux, 32bit only
-	https://ufile.io						#UPLOAD FILES WITH DATE/TIME EXPIRATION
+	https://ufile.io						#UPLOAD FILE WITH DATE/TIME EXPIRATION
 	https://genr8rs.com/Generator/Fun/LeetSpeakGenerator		#L33t language generator | Leet language generator
 	https://security.archlinux.org/					#Archlinux Security Track
 	https://opensource.com/article/18/11/udev			#Introduction to udev
@@ -53138,13 +53363,18 @@ YAZI, THE COMMANDLINE FILE EXPLORER
 		[file: ~/.config/yazi/yazi.toml ]
 			[opener]
 			play = [
-			    { run = 'mplayer "$@"', block = true, orphan = true, desc = "Play", for = "unix" }
+			    { run = 'mpv "$@"', block = true, orphan = true, desc = "Play", for = "unix" }
+			]
+
+			open_img = [
+			    { run = 'xnviewmp "$@"', block = false, orphan = false, desc = "Open Image", for = "unix" }
 			]
 
 			[open]
 			rules = [
 			    { mime = "text/*", use = ["edit", "open", "reveal"] },
 			    { mime = "audio/*", use = "play" },
+			    { mime = "image/*", use = "open_img" },
 			    { mime = "video/*", use = "play" },
 			    { mime = "video/x-matroska", use = "play" }
 			]

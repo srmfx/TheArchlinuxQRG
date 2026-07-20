@@ -40453,6 +40453,10 @@ SOME BROOT FILE EXPLORER
 
 		5) Use the distro post-install
 			$ wsl -d archlinux_dist
+				or
+			$ wsl -d archlinux_dist -u <username>
+
+			A) Note: only use the 2nd form after creating the user, using 'useradd'.
 
 		WSL DEFAULT WINDOWS LOCATION FOR LINUX DISTROS
 			The Default Location for WSL Linux Distros is:
@@ -40540,6 +40544,10 @@ SOME BROOT FILE EXPLORER
 		
 		1) Start your already installed distro:
 			$ wsl -d archlinux_dist
+				or
+			$ wsl -d archlinux_dist -u <username>
+
+			A) Note: only use the 2nd form after creating the user, using 'useradd'.
 
 		2) Install 'zsh' and 'sudo':
 			# pacman -S zsh sudo
@@ -41123,9 +41131,11 @@ SOME BROOT FILE EXPLORER
 						NOTE: Don't close the session in Step #1
 
 						$ wsl -d <WSL_Distro>
+							or
+						$ wsl -d <WSL_Distro> -u <username>
 
-						Example:
-							$ wsl -d archlinux
+						A) Note: only use the 2nd form after creating the user, using 'useradd'.
+
 					2) Type:
 						# machinectl shell --uid=YOUR_USERNAME
 
@@ -41153,9 +41163,10 @@ SOME BROOT FILE EXPLORER
 					NOTE: Don't close the session in Step #1
 
 					$ wsl -d <WSL_Distro>
+						or
+					$ wsl -d <WSL_Distro> -u <username>
 
-					Example:
-						$ wsl -d archlinux
+					A) Note: only use the 2nd form after creating the user, using 'useradd'.
 
 				3) Use 'machinectl' to instantiate an XDG_RUNTIME_DIR on /run/user/1000':
 					NOTE: This is here because WSL never instantiates XDG_RUNTIME_DIR='/run/user/1000' 
@@ -41365,7 +41376,11 @@ SOME BROOT FILE EXPLORER
 
 		COPYING AND MOVING FILES FROM WITHIN WSL
 			1) First, start your wsl distro:
-				$ wsl -d <distro_name>
+				$ wsl -d <WSL_Distro>
+					or
+				$ wsl -d <WSL_Distro> -u <username>
+
+				A) Note: only use the 2nd form after creating the user, using 'useradd'.
 
 			2) Access the following directory to get access to your system's drive:
 				$ cd /mnt/c/<username>

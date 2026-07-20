@@ -36231,12 +36231,62 @@ VERY IMPORTANT:
 	https://gitlab.archlinux.org/groups/archlinux/packaging/packages/-/issues/?sort=created_date&state=opened&search=crash&first_page_size=20
 
 USEFUL LINKS TO CHECK:
+	https://www.osboxes.org						#Pre-installed linux images for use in Virtual Machines
+									(VirtualBox/Vmware/Qemu).
+
+	https://www.linuxvmimages.com					#Pre-installed linux images for use in Virtual Machines
+									(VirtualBox/Vmware/Qemu).
+
+	https://winworldpc.com/home					#Online museum dedicated to the preservation and sharing
+									of vintage, abandoned, and pre-release software.
+
+	https://archive.org/details/software				#Official Internet Archive (Software Library).
+
+	https://www.myabandonware.com/					#Collection of Abandonware Software.
+
+	https://github.com/PCBox/PCBox					#PCBox is a 86Box port with support for slightly more modern
+									options like Pentium 3.
+
+	https://bochs.sourceforge.io					#Bochs is capable of running most vintage Operating Systems
+									without the hardware limitations of PCBox/86box.
+										https://sourceforge.net/projects/bochs/files/bochs/3.0/
+
+	https://github.com/86Box/86Box					#x86-based machine emulator. x86box is a modern fork of PCem
+									which support has been dropped. 
+
+	https://www.pcjs.org						#PCjs emulates a collection of old hardware and software
+									directly on your browser. It allows the user to export the
+									hard disk created by the virtual machine, so that it can be used
+									locally on your PC.
+										github: https://github.com/jeffpar/pcjs
+
+	https://github.com/otya128/winevdm/				#WineVDM is a utility that allows 64-bit windows to
+									run 16-bit Windows (Windows 1.x, 2.x, 3.0, 3.1, etc.) applications.
+
+	https://i2p.net/en/						#I2P Network is a decentralized, privacy-focused network that allows people to
+									communicate and share information anonymously. It works by routing data through
+									multiple encrypted layers across volunteer-operated nodes, hiding both the sender's
+									and receiver's locations. The result is a secure, censorship-resistant network
+									designed for private websites, messaging, and data sharing.
+
 	https://github.com/elishacloud/dxwrapper			#Fixes compatibility issues with older games running on Windows 10/11
 									by wrapping DirectX dlls.
 									wiki: https://github.com/elishacloud/dxwrapper/wiki/Configuration#compatibility
 
+	https://www.zeus-software.com/downloads/nglide			#nGlide Warper that allows playing 3Dfx Glide games without the need for having 3Dfx
+									Voodoo graphics card. nGlide emulates Glide environment with Direct3D and Vulkan.
+									Glide wrapper also supports high resolution modes.
+									Nglide works the same as dgvoodoo2, but nglide is required/mandatory for games
+									that expect glide drivers to be on the windows system folder instead of the game folder.
+
+	https://dxwnd.org						#DxWnd is a specialized software designed to help users run full-screen applications,
+									particularly older video games, in a windowed mode on modern systems. Its primary goal
+									is to intercept the commands that force a program to run in full-screen and modify them
+									so that the program runs in a resizable window, providing more flexibility for users.
+									(Compatible with gdvoodoo2).
+
 	https://dege.freeweb.hu						#Components for supporting old Graphics API like '3Dfx Glide' and 'Direct3D'
-									on modern systems. (dgVoodoo2).
+									on modern systems. (dgvoodoo2).
 
 	https://github.com/ventoy/Ventoy				#(Windows/Linux) Can create bootable USB Storage Devices from multiple .iso images,
 									allowing more than one live operating system to be copied/appended into it for live booting.

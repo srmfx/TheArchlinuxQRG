@@ -5865,6 +5865,8 @@ git commit                  	    #Opens default text editor for both: naming com
 			    	    files to commit
 
 git commit -a 			    #Commit current work with an editor
+				    ^ note: see 'git add -p' for doing partial commits.
+
 git commit -m "Commit 1"    	    #Commmits all currently added files, and names commit as "Commit 1"
 git commit -m "Commit 1" File1.txt  #Commits changes made to File1.txt, names commit as "Commit 1"    
 git commit [filename] -m "message"  #Commits a single file in the current branch 
@@ -5908,7 +5910,7 @@ git commit <filename> -m "Message"  #Commits changes to a given file.
 					^ will auto-complete to: ./source/MainComponentes/StaggedFile.cpp
 
 
-git add --all			#Adds all data to staging area including hidden files and hidden directories.
+git add --all			    #Adds all data to staging area including hidden files and hidden directories.
 	or
 git add -A
 

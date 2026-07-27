@@ -1042,6 +1042,7 @@ USE LICENSE:
 	BASICS ON HYPERV
 		CHECKING IF HYPER-V IS ENABLED ON WINDOWS
 		CHECKING IF WSL IS ACTUALLY USING HYPER-V
+	MANUALLY TRIMMING SUPPORTED DISKS
 	SOME WSL CONFIGURATION FILES | WSL SETTINGS
 	ACCESSING WSL LINUX DIRECTORIES FROM COMMANDLINE OR POWERSHELL
 		USING VIM MODE ON WINDOWS POWERSHELL
@@ -1910,6 +1911,9 @@ New Syntax(2023):
 ====================================================================================================
 
 -015
+
+		MANUALLY TRIMMING SUPPORTED DISKS ON WINDOWS 11
+			TRIMMINNG WITHIN WSL LINUX DISTROS
 		--UPDATE TO YAZI.TOML FILE
 		--NEW ALLSETTINGS.INI FILE HAS BEEN ADDED
 		MY CUSTOM RUNTIME CONFIGURATION FILE FOR FISH -> minor update
@@ -35953,7 +35957,7 @@ TODO #37 - VERY IMPORTANT - :
 	being a 'Filesystem feature' using dumpe2fs.
 
 	The discard option as a mount option forces the user to manually trim the SSD Disk
-	by using #fstrim --all.
+	by using # fstrim --all.
 
 	a discard feature as 'filesystem feature' allows trimmage to happen every single time a file is deleted,
 	which kinda makes the system slower.
@@ -39970,6 +39974,25 @@ SOME BROOT FILE EXPLORER
 					or
 				Get-Process vmmem
 
+
+	MANUALLY TRIMMING SUPPORTED DISKS ON WINDOWS 11
+		1) As administrator, check support trimming on power shell:
+			# fsutil behavior query DisableDeleteNotify
+
+		2) As administrator, run the trimming command for the given partition/disk: 
+			# Optimize-Volume -DriveLetter C -ReTrim -Verbose
+
+		A) Note: The kernel, the filesystem and the storage device must fully support trimming operations.
+		B) Note: Storage devices connected to USB Port via Adapters might not fully work with trimming operations.
+		Furtherover USB 2.0 does not support trimming commands at all, only USB 3.0 does.
+
+		TRIMMINNG WITHIN WSL LINUX DISTROS
+			The command 'fstrim -v -a' will work normally just like on any other linux distro,
+			but just for linux distros running inside WSL, you'll need to shrink the image to retrieve
+			the host system any unused disk space after trimming operation inside linux.
+
+				READ MORE ON:
+					SHRINKING A MICROSOFT .VHDX VIRTUAL DISK IMAGE
 
 	SOME WSL CONFIGURATION FILES | WSL SETTINGS
 		Reference: https://learn.microsoft.com/en-us/windows/wsl/wsl-config#wslconf

@@ -52608,8 +52608,6 @@ SETTING UP A LVM STORAGE MANAGEMENT LAYER
 				1.1) Run fstrim one time before umounting:
 					# fstrim -v -a
 					
-					Note: due to the nature of LVM, you can fstrim at any point.
-
 				1.2) Umount:
 					# umount /mnt/ext_data
 

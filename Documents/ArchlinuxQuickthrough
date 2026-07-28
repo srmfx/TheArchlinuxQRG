@@ -40003,14 +40003,32 @@ SOME BROOT FILE EXPLORER
 			Number of Logical Processors and also set a path for custom kernel for all WSL Distributions:
 				C:\Users\<YOUR_USERNAME>\.wslconfig needs to be created by the user
 
+				VERY IMPORTANT:
+					Read the comment lines regarding 'gpuSupport' option, and disable gpu acceleration
+					on both /etc/wsl.conf (on linux) and ~/.wslconfig (on windows).
+
 				EXAMPLE:
 					[file: C:\Users\<USERNAME>\.wslconfig ]
 						[wsl2]
 						kernel="C:\\Users\\User\\.wsl-kernel\\bzImage"
 						swap=4GB
 						memory=17GB
-						##Disabling GPU Acceleration will help for non vt-d CPUs
-						##Since it may cause intermitent crashes.
+
+						## Both your linux /etc/wsl.conf and windows ~/.wslconfig have this
+						## same GPU Setting(under different names),
+						## the linux configuration options only affects the specific
+						## Linux distro it is placed in. The windows configuration file affects all
+						## system-wide virtual machines controlled by WSL2.
+						#
+						## You should disable GPU Hardware Acceleration when encountering graphical
+						## issues or crashes. Generally speaking, GPU Hardware Acceleration SHOULD NOT
+						## be used if vt-d feature is not available or enabled in your CPU,
+						## as it will likely cause graphical glitches and program crashes/freezes.
+						##
+						## WSL2 GPU Hardware Acceleration is enabled by default.
+						## If your CPU does not support vt-d or any other alike feature, it's suggested 
+						## to disable it on both ~/.wslconfig (on your windows) and /etc/.wsl.conf
+						## on your linux.
 						gpuSupport=false
 
 						##Defaults to true:
@@ -40053,30 +40071,50 @@ SOME BROOT FILE EXPLORER
 					/etc/wsl.conf is created by default inside your WSL Linux Distro
 						EXAMPLE:
 						[file: /etc/wsl.conf]
+							## Changes default user(defaults to root):
+							## If you have issues when launching graphical applications because of wayland,
+							## it's recommended to disable wayland by setting WAYLAND_DISPLAY environment
+							## var to empty. This can happen when no vt-d support exists for your CPU.
+							## when this happens, disable GPU Hardware acceleration completely in here.
+							## Read more below.
+							#[user]
+							#default=
+
 							[boot]
 							systemd=true
 
-							## This allows running known windows programs from linux,
-							## usually through wine. This gives a performance boost,
-							## when launching and using linux within WSL.
-							[interop]
-							enabled = true
-							appendWindowsPath = true
+							## Both your linux /etc/wsl.conf and windows ~/.wslconfig have this
+							## same GPU Setting(under different names),
+							## the linux configuration options only affects the specific
+							## Linux distro it is placed in. The windows configuration file affects all
+							## system-wide virtual machines controlled by WSL2.
+							#
+							## You should disable GPU Hardware Acceleration when encountering graphical
+							## issues or crashes. Generally speaking, GPU Hardware Acceleration SHOULD NOT
+							## be used if vt-d feature is not available or enabled in your CPU,
+							## as it will likely cause graphical glitches and program crashes/freezes.
+							##
+							## WSL2 GPU Hardware Acceleration is enabled by default.
+							## If your CPU does not support vt-d or any other alike feature, it's suggested 
+							## to disable it on both ~/.wslconfig (on your windows) and /etc/.wsl.conf
+							## on your linux.
+							[gpu]
+							enabled=false
 
 							## A string of the command that you would like to run 
 							## when the WSL instance starts. This command is run 
 							## as the root user. Only available for Windows 11.
 							#command=""
 
-							[network]
 							
-							## Defaults to 'true' - Setting to true will allow WSL
+							## 'GenerateHosts' defaults to 'true' - Setting to true will allow WSL
 							## to generate the /etc/hosts file, which contains a 
 							## static map of which hostnames correspond with a certain IP
 							## address.
+							#[network]
 							#generateHosts=false
 
-							## Defaults to 'true' - Setting to true will allow WSL 
+							## 'generateResolvConf' defaults to 'true' - Setting to true will allow WSL 
 							## to generate the /etc/resolv.conf file, which contains
 							## a DNS list capable of resolving a given hostname to 
 							## its IP address.
@@ -40085,22 +40123,24 @@ SOME BROOT FILE EXPLORER
 							## Sets hostname to be used for WSL distribution.
 							#hostname = wslhost
 
-							[gpu]
-							enabled=true
-
-							[system-distro-env]
 							##This is known to cause issues and hanging processes!
+							#[system-distro-env]
 							#WESTON_RDP_MONITOR_REFRESH_RATE=75
 
-							[interop]
-							## Defaults to 'true' - Setting this key will determine 
+							## This allows running known windows programs from linux,
+							## usually through wine. This gives a performance boost,
+							## when launching and using linux within WSL.
+							## 'enabled' defaults to 'true' - Setting this key will determine 
 							## whether WSL will support launching Windows processes.
-							#enabled=false
-
-							## Defaults to 'true' - Setting this key will determine 
-							## whether WSL will add Windows path elements to the 
-							## $PATH environment variable.
-							#appendWindowsPath=false
+							## appendWindowsPath defaults to 'true' and will help determine
+							## whether WSL will add Windows path elements to the $PATH environment var.
+							## IMPORTANT : just for 'appendWindowsPath', it may cause issue when
+							## programs under $PATH and /usr/bin exists under the same name on linux
+							## and windows. Since this options is enabled by default, it's advised to
+							## remove same programs from windows path instead of disabling it instead.
+							#[interop]
+							#enabled=true
+							#appendWindowsPath=true
 						[/file]
 
 				2.2 - This file contians local hostname
@@ -50369,10 +50409,29 @@ SOME BROOT FILE EXPLORER
 		
 			The issue can arise from using Old GPU/Old GPU Drivers within WSL2.
 
-			Instead of disabling GPU Acceleration for each program, it's possible to disable it entirely from WSL,
-			by editing the ~/.wslconfig (or C:\Users\<username>\.wslconfig ) and adding the following line ON YOUR WINDOWS FILE:
+			Instead of disabling GPU Acceleration for each program(under linux), it's possible to disable it entirely
+			from WSL, by editing the ~/.wslconfig (or C:\Users\<username>\.wslconfig ) and adding the following line
+			ON YOUR WINDOWS FILE.
+
+			Note that GPU Hardware Acceleration is enabled by default on WSL2,
+			Read the following comment lines carefully and disable gpu both on /etc/wsl.conf and ~/.wslconfig:
 
 				[file: ~/.wslconfig ]
+					## Both your linux /etc/wsl.conf and windows ~/.wslconfig have this
+					## same GPU Setting(under different names),
+					## the linux configuration options only affects the specific
+					## Linux distro it is placed in. The windows configuration file affects all
+					## system-wide virtual machines controlled by WSL2.
+					#
+					## You should disable GPU Hardware Acceleration when encountering graphical
+					## issues or crashes. Generally speaking, GPU Hardware Acceleration SHOULD NOT
+					## be used if vt-d feature is not available or enabled in your CPU,
+					## as it will likely cause graphical glitches and program crashes/freezes.
+					##
+					## WSL2 GPU Hardware Acceleration is enabled by default.
+					## If your CPU does not support vt-d or any other alike feature, it's suggested 
+					## to disable it on both ~/.wslconfig (on your windows) and /etc/.wsl.conf
+					## on your linux.
 					[wsl2]
 					gpuSupport=false
 				[/file]

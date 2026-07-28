@@ -1171,6 +1171,7 @@ USE LICENSE:
 	---TROUBLESHOOTING WINDOWS | TROUBLESHOOTING WSL | WSL TROUBLESHOOTING
 		AUDIO DISCONNECTING FOR WSL
 		GPU HARDWARE ACCELERATION CRASHES | WSL CRASHING INTERMITENTLY
+			DISABLING WAYLAND DISPLAY AFTER TURNING OFF GPU HARDWARE ACCELERATION | WSL CRASHES INTERMITENTLY
 		HOW TO FIX USB DEVICE NOT DETECTED
 		RE-ENABLING WINDOWS AUTO-UPDATE
 		ENABLING VOICE RECOGNITION ON WINDOWS
@@ -1911,7 +1912,8 @@ New Syntax(2023):
 ====================================================================================================
 
 -015
-
+		--UPDATE TO CONFIG.FISH 
+		DISABLING WAYLAND DISPLAY AFTER TURNING OFF GPU HARDWARE ACCELERATION | WSL CRASHES INTERMITENTLY
 		MANUALLY TRIMMING SUPPORTED DISKS ON WINDOWS 11
 			TRIMMINNG WITHIN WSL LINUX DISTROS
 		--UPDATE TO YAZI.TOML FILE
@@ -7337,7 +7339,8 @@ FISH - THE FRIENDLY INTERACTIVE SHELL
 					#or when it's been invalidated.
 
 					if test -z "$dbus_realpath"
-						set -gx dbus_realpath "$(realpath /proc/$DBUS_SESSION_BUS_PID/exe)";
+						#Older: set -gx dbus_realpath "$(realpath /proc/$DBUS_SESSION_BUS_PID/exe)";
+						set -gx dbus_realpath "$(realpath /proc/$DBUS_SESSION_BUS_PID/exe 2>/dev/null)";
 					end
 				end
 
@@ -7382,7 +7385,15 @@ FISH - THE FRIENDLY INTERACTIVE SHELL
 						abbr --add chromium "chromium --disable-gpu";
 						abbr --add firefox "MOZ_WEBRENDER=0 firefox";
 						abbr --add created_abbreviations "1";
+						abbr --add vivaldi "vivaldi --disable-gpu";
 					end
+				end
+
+				function disable_wayland_display
+					## Causes WSL2 to use X11 fallback that should be used when no GPU Hardware Acceleration is available
+					## For avoiding glitches and crashes:
+					set -e WAYLAND_DISPLAY;
+					set -Ux WAYLAND_DISPLAY " ";
 				end
 
 				function zi
@@ -7399,6 +7410,14 @@ FISH - THE FRIENDLY INTERACTIVE SHELL
 					dbus_launcher_function;
 					create_abbreviations;
 					xdg_runtime_dir_init;
+					disable_wayland_display;
+				end
+
+				# Monitor changes and override tampering
+				function wayland_display_monitor --on-variable WAYLAND_DISPLAY
+				    if test "$WAYLAND_DISPLAY" != " "
+					disable_wayland_display;
+				    end
 				end
 			[/file]
 
@@ -50435,6 +50454,41 @@ SOME BROOT FILE EXPLORER
 					[wsl2]
 					gpuSupport=false
 				[/file]
+
+			DISABLING WAYLAND DISPLAY AFTER TURNING OFF GPU HARDWARE ACCELERATION | WSL CRASHES INTERMITENTLY
+				Currently, Wayland is well known for running into issues when relying solely on the CPU
+				for graphics rendering, causing miss placed off-bounds items on screen and graphical glitches.
+
+				Either set the environment variable WAYLAND_DISPLAY to empty or unset it completely
+				from your shell.
+				
+				Example of disabling wayland_display on fish shell:
+
+				[file: ~/.config/fish/config.fish ]
+					function disable_wayland_display
+						## Causes WSL2 to use X11 fallback that should be used when no GPU Hardware Acceleration
+						## is available for avoiding glitches and crashes:
+						set -e WAYLAND_DISPLAY;
+						set -Ux WAYLAND_DISPLAY " ";
+					end
+
+					if status is-interactive
+						fish_vi_key_bindings;
+						set_gdk_theme;
+						dbus_launcher_function;
+						create_abbreviations;
+						xdg_runtime_dir_init;
+						disable_wayland_display;
+					end
+
+					# Monitor changes and override tampering
+					function wayland_display_monitor --on-variable WAYLAND_DISPLAY
+					    if test "$WAYLAND_DISPLAY" != " "
+					    	disable_wayland_display;
+					    end
+					end
+				[/file]
+
 
 		HOW TO FIX USB DEVICE NOT DETECTED
 			Sometimes this issue can be easily fixed by disabling Power Savings for USB on Windows,

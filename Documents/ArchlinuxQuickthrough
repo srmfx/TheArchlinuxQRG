@@ -2531,9 +2531,12 @@ PACMAN, THE MAIN ARCHLINUX PACKAGE MANAGER:
 
 		It'd be wise to remove locally orphaned packages, since they have zero-use:
 			$ yay -Rns  $(yay -Qtdq);
-			^ do not mistake -Qtdq with -Qtdt !!!
-			^ this has to be ran multiple times manually to ensure all 
-			^ local orphaned packages are fully removed.
+				or
+			$ yay -Rns $(yay -Qdqt);
+
+			A) Note: do not mistake -Qtdq with -Qtdt !!!
+			B) Note: Removing orphaned packages might have to be run multiple times as
+			new orphaned packages might emerge from the 1st removal.
 
 		As for 'remote orphaned packages', they have to be removed manually!
 			yay -Rns <package_name>

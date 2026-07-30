@@ -1171,7 +1171,9 @@ USE LICENSE:
 	---TROUBLESHOOTING WINDOWS | TROUBLESHOOTING WSL | WSL TROUBLESHOOTING
 		AUDIO DISCONNECTING FOR WSL
 		GPU HARDWARE ACCELERATION CRASHES | WSL CRASHING INTERMITENTLY
+			UNINSTALL MESA DRIVERS | WSL CRASHES INTERMITENTLY
 			DISABLING WAYLAND DISPLAY AFTER TURNING OFF GPU HARDWARE ACCELERATION | WSL CRASHES INTERMITENTLY
+				SETTING UP XCLIP FOR CLIPBOARDING ON NVIM
 		HOW TO FIX USB DEVICE NOT DETECTED
 		RE-ENABLING WINDOWS AUTO-UPDATE
 		ENABLING VOICE RECOGNITION ON WINDOWS
@@ -1912,8 +1914,11 @@ New Syntax(2023):
 ====================================================================================================
 
 -015
+		--UPDATE TO CUSTOM INIT.LUA
 		--UPDATE TO CONFIG.FISH 
+		UNINSTALL MESA DRIVERS | WSL CRASHES INTERMITENTLY
 		DISABLING WAYLAND DISPLAY AFTER TURNING OFF GPU HARDWARE ACCELERATION | WSL CRASHES INTERMITENTLY
+			SETTING UP XCLIP FOR CLIPBOARDING ON NVIM
 		MANUALLY TRIMMING SUPPORTED DISKS ON WINDOWS 11
 			TRIMMINNG WITHIN WSL LINUX DISTROS
 		--UPDATE TO YAZI.TOML FILE
@@ -5521,10 +5526,23 @@ MY CUSTOM RUNTIME CONFIGURATION FILE FOR NVIM
 			for a few old .vim commands, you can use vim.cmd() inside the init.lua script.
 			both 'vim.cmd("colorscheme retrobox")' and 'vim.cmd.colorscheme("retrobox")' are valid.
 		]]
-
 		vim.opt.termguicolors = true
+		vim.opt.conceallevel = 2
 		vim.cmd.colorscheme("retrobox")
 		vim.cmd("set fileencodings=utf8,cp936,gb18030,big5,ansi")
+
+		vim.g.clipboard = {
+		  name = 'xclip',
+		  copy = {
+		    ['+'] = 'xclip -selection clipboard',
+		    ['*'] = 'xclip -selection primary',
+		  },
+		  paste = {
+		    ['+'] = 'xclip -selection clipboard -o',
+		    ['*'] = 'xclip -selection primary -o',
+		  },
+		  cache_enabled = 1,
+		}
 	[/file]
 
 -END NEW VIM TUTORIAL--
@@ -50458,6 +50476,27 @@ SOME BROOT FILE EXPLORER
 					gpuSupport=false
 				[/file]
 
+			CHANGING DEFAULT USER FOR WSL LINUX DISTRO
+				After disabling Wayland Display and if using a different user other than root as default user,
+				it's recommended to change the default user for /etc/wsl.conf so that runtime directory can be
+				properly instantiated for the given user by adding these lines:
+					[file: /etc/wsl.conf ]
+						[user]
+						default=USER_NAME
+					[/file]
+
+					A) Note: Now exit and shutdown wsl using 'wsl --shutdown' or 'wsl -t <distro_name>' from
+					windows powershell and restart your distro from scratch.
+
+					B) Note: This way you can still use WAYLAND_DISPLAY="wayland-0" just for programs that
+					still need it, like the 'pass' util, ex:
+						$ WAYLAND_DISPLAY="wayland-0" pass -c <password>
+
+			UNINSTALL MESA DRIVERS | WSL CRASHES INTERMITENTLY
+				Consider uninstalling mesa drivers if you have them installed after disabling GPU
+				Harware acceleration:
+					# pacman -Rns mesa mesa-demos
+
 			DISABLING WAYLAND DISPLAY AFTER TURNING OFF GPU HARDWARE ACCELERATION | WSL CRASHES INTERMITENTLY
 				Currently, Wayland is well known for running into issues when relying solely on the CPU
 				for graphics rendering, causing miss placed off-bounds items on screen and graphical glitches.
@@ -50492,6 +50531,32 @@ SOME BROOT FILE EXPLORER
 					end
 				[/file]
 
+				SETTING UP XCLIP FOR CLIPBOARDING ON NVIM
+					If you disabled WAYLAND_DISPLAY following the instructions above,
+					wl-copy will not be available for nvim to use for it's clipboard feature; 
+					setting up xclip is one way to fix it:
+
+						1) Install xclip from the repository:
+							# pacman -S xclip
+
+						2) Insert these lines to init.lua:
+							[file: ~/.config/nvim/init.lua]
+								vim.g.clipboard = {
+								  name = 'xclip',
+								  copy = {
+								    ['+'] = 'xclip -selection clipboard',
+								    ['*'] = 'xclip -selection primary',
+								  },
+								  paste = {
+								    ['+'] = 'xclip -selection clipboard -o',
+								    ['*'] = 'xclip -selection primary -o',
+								  },
+								  cache_enabled = 1,
+								}
+							[/file]
+
+						A) Note: XCLIP should work due to how wayland uses an x11 fallback
+						when it fails to render apps using wayland display.
 
 		HOW TO FIX USB DEVICE NOT DETECTED
 			Sometimes this issue can be easily fixed by disabling Power Savings for USB on Windows,

@@ -7411,10 +7411,17 @@ FISH - THE FRIENDLY INTERACTIVE SHELL
 				end
 
 				function disable_wayland_display
-					## Causes WSL2 to use X11 fallback that should be used when no GPU Hardware Acceleration is available
+					## Causes WSL2 to use X11 fallback that should be used when
+					## no GPU Hardware Acceleration is available
 					## For avoiding glitches and crashes:
 					set -e WAYLAND_DISPLAY;
 					set -Ux WAYLAND_DISPLAY " ";
+
+					## Make QT and GTK applications fallback to X11 (xwayland)
+					## so they can boot faster instead of testing the non-existing empty
+					## WAYLAND_DISPLAY socket within the user runtime environment.
+					set -e GDK_BACKEND "x11";
+					set -e QT_QPA_PLATFORM "xcb";
 				end
 
 				function zi
@@ -50512,6 +50519,12 @@ SOME BROOT FILE EXPLORER
 						## is available for avoiding glitches and crashes:
 						set -e WAYLAND_DISPLAY;
 						set -Ux WAYLAND_DISPLAY " ";
+
+						## Make QT and GTK applications fallback to X11 (xwayland)
+						## so they can start faster instead of testing the non-existing empty
+						## WAYLAND_DISPLAY socket within the user runtime environment.
+						set -e GDK_BACKEND "x11";
+						set -e QT_QPA_PLATFORM "xcb";
 					end
 
 					if status is-interactive

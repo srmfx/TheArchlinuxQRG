@@ -7420,8 +7420,10 @@ FISH - THE FRIENDLY INTERACTIVE SHELL
 					## Make QT and GTK applications fallback to X11 (xwayland)
 					## so they can boot faster instead of testing the non-existing empty
 					## WAYLAND_DISPLAY socket within the user runtime environment.
-					set -e GDK_BACKEND "x11";
-					set -e QT_QPA_PLATFORM "xcb";
+					set -e GDK_BACKEND;
+					set -e QT_QPA_PLATFORM;
+					set -Ux GDK_BACKEND "x11";
+					set -Ux QT_QPA_PLATFORM "xcb";
 				end
 
 				function zi

@@ -1024,7 +1024,10 @@ USE LICENSE:
 		DECREASING/CAPPING/LIMITING FPS IN GAMES
 		HOW TO CHECK GNOME SETTING
 
+
+READ THIS BEFORE STARTING USING WSL
 ---SOME WINDOWS STUFF:
+	READ THIS BEFORE YOU STARTING USING WSL
 	SOME WINDOWS UTILITIES
 	HOW TO KILL A FROZEN APPLICATION UNDER WINDOWS 11
 	INSTALLING WINDOWS WITHOUT A HOTMAIL OR MICROSOFT ACCOUNT
@@ -1122,6 +1125,8 @@ USE LICENSE:
 		ENABLING DBUS-BROKER IN WSL
 		MOUNTING DEVICES IN WSL
 			FETCHING/LISTING ALL HARD DISKS AVAILABLE USING WINDOWS POWERSHELL
+			MOUNTING USB DEVICES ON WSL
+			MOUNTING USB DEVICES USING 'USBIPD'
 			MOUNTING DEVICES ON WSL
 			UMOUNTING DEVICES ON WSL
 				UMOUNTING DEVICES MANUALLY ON WSL LINUX DISTRO
@@ -1535,7 +1540,6 @@ USE LICENSE:
 			EXT4 EXTENDED FILESYSTEM OPTIONS
 			EXT4 FILESYSTEM FEATURES
 			AVAILABLE EXT4 FILESYSTEM MOUNT OPTIONS
-			CREATING BTRFS SUB-VOLUME SNAPSHOTS
 
 	SETTING UP A BTRFS FILESYSTEM
 		BTRFS FILESYSTEM MANAGEMENT
@@ -1914,6 +1918,9 @@ New Syntax(2023):
 ====================================================================================================
 
 -015
+		MOUNTING USB DEVICES USING 'USBIPD'
+		TUTORIAL INSTALLING ARCHLINUX ON USB DISK / EFI INSTALLATION / UEFI INSTALLATION -> MINOR UPDATE
+		MOUNTING USB DEVICES ON WSL
 		--UPDATE TO CUSTOM INIT.LUA
 		--UPDATE TO CONFIG.FISH 
 		UNINSTALL MESA DRIVERS | WSL CRASHES INTERMITENTLY
@@ -2735,7 +2742,7 @@ $yay -Rns $(yay -Qtdq)		#Same, but includes AUR Packages on the list as well.
 
 #pacman -Sf <package_name>	#Does the same as --overwrite for old pacman versions. Installs package and overwrite all existing files
 
-#pacman -S <package_name> --overwrite <'<path>'>		#Resolves conflicting files when installing a given package
+#pacman -S <package_name> --overwrite <'<path>'>	#Resolves conflicting files when installing a given package
 							ex.: pacman -S nvidia --overwrite '/usr/lib/*'
 								^ overwrites all conflicting files that exists in /usr/lib/.
 							ex.2: pacman -S nvidia --overwrite '/usr/shared/*' --overwrite '/usr/lib/*'
@@ -2796,7 +2803,11 @@ $pacman -Ql <package_name>	#List all files owned by a given package
 	installed files and 'paccheck' actually checks for data corruption using the package information stored 
 	on the MTREE file for each package.
 
-		# paccheck --sha256sum --quiet				#Checks package integrity, but requires 'pacutils' to be installed.
+# paccheck --sha256sum --quiet				#Checks package integrity, but requires 'pacutils' to be installed.
+
+# paketkoll check					#Same as paccheck, may be slower, requires 'paketkoll' installed.
+
+# paketkoll --trust-mtime check				#Runs a fast metadata check without rehashing file contents.
 
 
 # pacman -Qkk						#Checks all packages integrity
@@ -12644,6 +12655,7 @@ UNDERSTANDING PCSX2-QT
 		Settings->Memory Card->Create
 
 	You can also easily convert known used memory cards to folder type at the 'convert' button.
+
 ================================================================================
 ================================================================================
 ================================================================================
@@ -13152,6 +13164,12 @@ Clear Steam Download Cache
 --------------------------
 ================================================================================
 TUTORIAL INSTALLING ARCHLINUX ON USB DISK / EFI INSTALLATION / UEFI INSTALLATION:
+Before you begin, these instructions cover only basic installation and minor recommendations pre and post install,
+it doesn't covers other major topics like user creation, anti-virus, firewalls, desktop environments, window managers,
+display managers, display servers and so on.
+
+You can always check the index for other topics if you need them.
+
 1. Boot from Archlinux Installation Media
 2. Use 'fdisk /dev/sdX' as root to partition your disk:
 	$ sudo fdisk /dev/sdX
@@ -13163,12 +13181,28 @@ TUTORIAL INSTALLING ARCHLINUX ON USB DISK / EFI INSTALLATION / UEFI INSTALLATION
 		Very Important Note: MBR Partition Tables have restriction to how much disk space can be managed by the operating system.
 		So always choose GPT.
 
-	2.1 -(Mandatory If Using GPT) Create an EFI Primary Partition: The EFI Partition has to be the FIRST PARTITION on the disk.
+		VERY IMPORTANT:
+			2.0.1 - After creating a GPT Partition table,
+			Go into GPT's Hybrid MBR Mode using 'fdisk' and add/create a bootable flag, write changes to disk
+			and leave hybrid mode, then finally write changes to disk again and leave the program.
+
+			This helps older operating systems or legacy BIOS-based bootloaders that only understand
+			MBR to recognize and boot from specific partitions on a GPT-formatted disk.
+
+			2.0.2 - If using a virtual machine, make sure it 100% fully supports EFI when attempting an UEFI Boot Setup.
+			EFI Must be enabled before installing grub in this case.
+
+			2.0.3 - If not using a virtual machine, make sure your Firmware/BIOS has EFI Enabled before setting up
+			grub or grub installation will fail.
+
+			2.0.4 - Follow every step closely, do not skip any step.
+
+	2.1 - (Mandatory If Using GPT) Create an EFI Primary Partition: The EFI Partition has to be the FIRST PARTITION on the disk.
 		Very Important Note: The more operating systems you plan on installing, the larger the EFI Partition has to be.
 		Furtherover, multiple kernels, bootloaders, firmware updates are demanding more and more EFI free space. 
 
 		To be safe, it's important to create an EFI Partition big enough, currently as of 09/01/2025 this date, 1GB~2GB should be enough.
-		if you plan on installing different bootloaders, use 4GB.
+		if you plan on installing different bootloaders or multiple operating systems, consider using more than 2GB.
 
 	2.2 - Create Linux Partition: The Linux Partition can be the SECOND OR Nth PARTITION on the disk.
 		The linux partition will hold all the operating system programs, tools, configuration files and  - when desired - the user home directory
@@ -13191,29 +13225,34 @@ TUTORIAL INSTALLING ARCHLINUX ON USB DISK / EFI INSTALLATION / UEFI INSTALLATION
 
 4. Format 'EFI Partition' as VFAT32(Formally fat32 for mkfs):
 	# mkfs.fat -F32 /dev/[efi_partition_disk]/
+		or
+	# mkfs.fat -F 32 -n "EFI" /dev/[efi_partition_disk]/
 
 5. Format 'Linux Partition' as EXT4:
-	# mkfs.ext4 /dev/[linux_partition_disk]/
+	# mkfs.ext4 /dev/[linux_partition]/
+		or
+	# mkfs.ext4 /dev/sdx2
 
 6. Mount Installation device in /mnt
-	ex.: # mount /dev/sdx2 /mnt
+	# mount /dev/sdx2 /mnt
 
-7. Create EFI directory for mounting the EFI partition later:
-	# mkdir /mnt/efi
-
-8. Mount EFI partition device on /mnt/efi:
-	ex.: # mount /dev/sdx1 /mnt/efi/
-
-	^ --alternative to step 8 and 9: 
+7. Mount EFI partition device on /mnt/efi:
+	old:
 		# mount --mkdir /dev/sdx1 /mnt/efi/
 
-9. Install Linux:
+	TODO: In some later step, just for GPT, it's required to have efi partition on
+	(step 17.7) /mnt/boot/efi instead, in that case umount and mount the efi partition on /mnt/boot/efi.
+		# mount --mkdir /dev/sdx1 /mnt/boot/efi/
+			or
+		# mkdir -P /mnt/boot/efi
+
+8. Install Linux:
 	ex.: #pacstrap -K /mnt base linux linux-firmware
 	^ -K Avoids using the same pacman keyring and mirrorlist as the host's linux distribution
 	^ hint.: To install other packages or package groups, append the names to the pacstrap command above 
 	^ (space separated) or use pacman while chrooted into the new system.
 
-10. Generate FStab File: 
+9. Generate FStab File: 
 	The fstab files holds which hard-disks and devices are mounted at system boot,
 	genfstab grabs all current mounted disks and devices and creates an fstab file.
 	If a device/disk isn't desirable at boot time, you can still remove it from the file manually
@@ -13225,56 +13264,60 @@ TUTORIAL INSTALLING ARCHLINUX ON USB DISK / EFI INSTALLATION / UEFI INSTALLATION
 		tip.: use -U to define devices by UUID,
 		Always type -U for UUID identification, not -L for labels.
 
-11. Chroot into the new system:
+10. Chroot into the new system:
 	Arch-chroot allows you to login into the newly installed system from another linux distro installation,
 	for doing modifications on it's configurations:
 
-		ex.: # arch-chroot /mnt 
+		ex.: # arch-chroot -S /mnt 
+		
+		VERY IMPORTANT: always use -S when chrooting using the command above,
+		it's necessery for efi grub installation.
 
-12. Set the time zone:
+11. Set the time zone:
 	ex.: # ln -sf /usr/share/zoneinfo/Brazil/East /etc/localtime
 
-13. Run hwclock to generate /etc/adjtime
+12. Run hwclock to generate /etc/adjtime
 	ex.: # hwclock --systohc
 
-14. Create the Initramfs (Initial Ramdisk Filesystem):
+13. Create the Initramfs (Initial Ramdisk Filesystem):
 	This will build the initramfs for all current installed kernels.
 	ex.: # mkinitcpio -P
-
+ 
 	Tip.: Before creating the initial RAM disk above, in /etc/mkinitcpio.conf move the block and keyboard hooks before the autodetect hook 
 	in order to boot your OS from any machine. - ADVICE: This tip can be done later after you have installed and tested the system.
 
-15. Change your root/admin password:
+14. Change your root/admin password:
 	# passwd
 
-16. Download and Install 'GRUB' package by using 'Pacman':
+15. Download and Install 'GRUB' package by using 'Pacman':
 	'Pacman' is the default package manager for archlinux, 'grub' is the bootloader that will allow you to boot into it.
 	# pacman -Syu grub
 	^ You can configure other distros to boot by editing '/boot/grub/grub.cfg' at some other point. - Not Described Here in these steps
 
-17.1 Setup grub as your system's bootloader on your current Hard Disk:
+15.1 - (MBR ONLY) Setup grub as your system's bootloader on your current Hard Disk:
 	# grub-install --target=i386-pc /dev/sdX
 	^ ex.: where /dev/sdX IS THE DISK (not a partition) where GRUB is to be installed. 
-	^ Step 17.1 usually fails if Partition Table is GPT and not MBR, if this is the case follow 17.2 steps instead!!! - VERY IMPORTANT
+	^ Step 15.1 usually fails if Partition Table is GPT and not MBR, if this is the case follow 17.2 steps instead!!! - VERY IMPORTANT
 	^ use #fdisk /dev/sdX and press 'p', either 'gpt' or 'mbr' should be mentioned in "Disklabel type"
 
-18 (MANDATORY ONLY FOR GPT PARTITION TABLES) If you're going to use a GPT Partition Table, you'll need to install EFI Boot Manager:
+16 (MANDATORY ONLY FOR GPT PARTITION TABLES) If you're going to use a GPT Partition Table, you'll need to install EFI Boot Manager:
 	MBR Partition Tables have limitation regarding maximum manageable disk size, more modern installations will always use GPT Partition Tables
 	So doing this will likely be a more mandatory step for everyone:
 		
 		ex.: # pacman -Syu efibootmgr
 
-19. Follow the below steps for setting up GRUB:
+17. Follow the below steps for setting up GRUB:
 
-	0 - Make sure BIOS SETTINGS has UEFI or UEFI AND LEGACY enabled, and ALSO MAKE SURE AHCI is enabled, otherwise booting from EFI Partition
-	won't be possible! - VERY IMPORTANT
+	17.0 - VERY IMPORTANT:
+		Make sure BIOS SETTINGS has UEFI or UEFI AND LEGACY enabled, and ALSO MAKE SURE AHCI is enabled, otherwise neither installing or 
+		booting from EFI Partition will be possible!
 
-	1 - Mount the EFI system partition and in the remainder of this section, substitute esp with its mount point.
+	17.1 - Mount the EFI system partition and in the remainder of this section, substitute 'esp' with its mount point.
 
-	2 - Choose a bootloader identifier, here named GRUB. A directory of that name will be created in esp/EFI/ to store the EFI binary 
+	17.2 - Choose a bootloader identifier, here named GRUB. A directory of that name will be created in esp/EFI/ to store the EFI binary 
 	and this is the name that will appear in the UEFI boot menu to identify the GRUB boot entry.
 
-	2.1 - Verify that you have a full EFI Environment available for install:
+	17.3 - Verify that you have a full EFI Environment available for install:
 		$ls -la /sys/firmware/efi
 
 		the output should look like this:
@@ -13292,20 +13335,25 @@ TUTORIAL INSTALLING ARCHLINUX ON USB DISK / EFI INSTALLATION / UEFI INSTALLATION
 		[/OUTPUT]
 		^ Furtherover, /sys/firmware/efi/efivars/ whould be populated with pseudo-files.
 
-	2.2 - Use efibootmgr to make sure you have EFI Available as well
+	17.4 - Use efibootmgr to make sure you have EFI Available as well as Changing the boot order(Read step 25).
 
-	2.3 - If EFI isn't available for either 2.1 step or 2.2, make sure to reboot, go to BIOS Settings and set UEFI and restart your computer!
+	17.5 - If EFI isn't available for either 2.1 step or 2.2, make sure to reboot, go to BIOS Settings and set UEFI and restart your computer!
 
-	3 - Execute the following command to install the GRUB EFI application grubx64.efi to esp/EFI/GRUB/ and install its modules to /boot/grub/x86_64-efi/.
+	17.6 - Execute the following command to install the GRUB EFI application grubx64.efi to esp/EFI/GRUB/ and install its modules to
+	/boot/grub/x86_64-efi/.
 
-	4 - #grub-install --target=x86_64-efi --efi-directory=esp --bootloader-id=GRUB
+	17.7 - Install GRUB:
+		# grub-install --target=x86_64-efi --efi-directory=esp --bootloader-id=GRUB
 
-	ex.: #grub-install --target=x86_64-efi --efi-directory=/boot/efi/ --bootloader-id=GRUB
-		^ This is going to create a new EFI Directory inside /boot/efi/, but don't worry!
-		^ VERY IMPORTANT: /boot/efi/ is the EFI Partition Mountpoint not a directory.
-		^ So make sure you CREATE an EFI Partition first.
+		Practical Example: 
+			# grub-install --target=x86_64-efi --efi-directory=/boot/efi/ --bootloader-id=GRUB
 
-	18. #grub-mkconfig -o /boot/grub/grub.cfg
+			^ This is going to create a new EFI Directory inside /boot/efi/, but don't worry!
+			^ VERY IMPORTANT: /boot/efi/ is the EFI Partition Mountpoint not a directory.
+			^ So make sure you CREATE an EFI Partition first and then mount first.
+
+	18. Create GRUB configuration file:
+		# grub-mkconfig -o /boot/grub/grub.cfg
 		^ VERY IMPORTANT: If you already have a grub.cfg file, better generate a new file with a different name:
 
 		18.1 - Generate new grub file with different name:
@@ -13320,14 +13368,14 @@ TUTORIAL INSTALLING ARCHLINUX ON USB DISK / EFI INSTALLATION / UEFI INSTALLATION
 		18.4 - ADVICE: make sure you have a installation media storage nearby in case things go wrong,
 		       you may have to restore the backup file after doing an arch-chroot if things don't quite work!
 
-	19. #pacman -Syu dhcpcd
+	19. # pacman -Syu dhcpcd
 
 	20. exit chroot environment
 		ex.: exit
 
 	21. umount all devices(mandatory on archroot environment) BEFORE REBOOTING
-		ex.: umount /mnt/efi     #Umounts efi partition
-		     umount /mnt/	 #Umounts system
+		ex.: umount /mnt/boot/efi	#Umounts efi partition
+		     umount /mnt/	 	#Umounts system
 
 	22. restart / reboot
 		ex.: reboot
@@ -13338,10 +13386,13 @@ TUTORIAL INSTALLING ARCHLINUX ON USB DISK / EFI INSTALLATION / UEFI INSTALLATION
 
 	25. After everything is installed and working make sure to use efibootmgr to change boot order:
 		ex.: Change the current boot order:
-			#efibootmgr -o 0002,0008,0001,0005
+			# efibootmgr -o 0002,0008,0001,0005
 
-	26. If this is a clean install, make sure to install thermald and iptables: 
-		read 'INSTALL THERMALD' topic!
+	26. If this is a clean install, make sure to install thermald(overheat prevention),
+	nftables(firewall manager) and clamav(anti-virus): 
+		Note:
+			read 'INSTALL THERMALD' topic!
+			the index also has topics covering clamav and nftables.
 
 ---------------
 -----------ALTERNATE CONFIGURATIONS(between 17-19):--------
@@ -36284,6 +36335,10 @@ VERY IMPORTANT:
 	https://gitlab.archlinux.org/groups/archlinux/packaging/packages/-/issues/?sort=created_date&state=opened&search=crash&first_page_size=20
 
 USEFUL LINKS TO CHECK:
+	https://support.broadcom.com/					#Broadcom offers Vmware Workstation Pro for free
+									for Microsoft Windows users for non-commercial
+									purposes.
+
 	https://www.pcgamingwiki.com/					#PCGamingWiki aims to list fixes and
 									workarounds for every single PC game.
 
@@ -39593,6 +39648,22 @@ SOME BROOT FILE EXPLORER
 ---------------------
 ---------------------
 ---------------------
+---------------------
+READ THIS BEFORE STARTING USING WSL
+	Before you start, know that Virtual Machines like VMware Workstation Pro cause Issues with WSL,
+	the reason to this is due to both virtual machines competing for exclusive control of the computer's
+	hardware. This happens because WSL requires windows running on top of Microsoft's Hyper-V hypervisor
+	architecture. Other virtual machines like VMWare Workstation Pro also use their own proprietary
+	hypervisor layer to talk directly to the Hardware.
+
+	This is known to cause BSOD errors which will halt and freeze your system which will forcibly shut
+	down any mounted storage devices and can cause filesystem error & corruption.
+
+	Always completely disable Hyper-V before using 3rd party virtual machines if they also rely
+	on a hypervisor of their own.
+---------------------
+---------------------
+---------------------
 ---SOME WINDOWS STUFF
 	SOME WINDOWS UTILITIES
 		Most of these tools are located under C:\Windows\System32\
@@ -39837,10 +39908,11 @@ SOME BROOT FILE EXPLORER
 			SFC can introduce even more system file corruption if the 'component store' is not 100% healthy.
 
 			VERY IMPORTANT: It's very important to execute DISM from time to time to ensure the component
-			store is healthy so that 'sfc' can fix windows system files when problem arises.
+			store is 100% correct so that 'sfc' can verify and fix windows system files when problem arises.
+			finally, restart your computer after running 'sfc /scannow'.
 
 			1) sfc /scannow
-				Scans the integrity of all protected system files and repairs files with problems when possible.
+				Scans the integrity of all protected system files and REPAIRS FILES with problems when possible.
 
 			2) sfc /verifyonly
 				Scans the integrity of all protected system files, without performing repairs.
@@ -39879,7 +39951,13 @@ SOME BROOT FILE EXPLORER
 			VERY IMPORTANT: DISM can be used with target images of older Windows operating systems, 
 			but not with target images of operating systems that are more recent than the installed version of DISM. 
 
-			
+			VERY IMPORTANT 2: On power blackouts or system crash, always run 'chkdsk /f C:' (checkdisk) first.
+			Next, only use /RestoreHealth after /ScanHealth in case errors have
+			been detected in order to repair the DISM Component Store; then after that
+			you might want to use 'sfc' for verifying and fixing the system in case of errors 
+			in the very same way.
+			Finally restart your after runnning 'sfc /scannow'PC if errors have been fixed.
+
 			1) DISM /Online /Cleanup-Image /CheckHealth
 				This will check health of the recovery image.
 
@@ -41339,6 +41417,73 @@ SOME BROOT FILE EXPLORER
 	MOUNTING DEVICES IN WSL
 		FETCHING/LISTING ALL HARD DISKS AVAILABLE USING WINDOWS POWERSHELL
 			$ GET-CimInstance -query "SELECT * from Win32_DiskDrive"
+
+		MOUNTING USB DEVICES ON WSL
+			WSL Doesn't directly support mounting USB devices for formatting and partitioning on linux,
+			users trying to do so have to use a third party tool called 'usbipd'.
+
+			However, it's possible to fully access Storage USB Devices for read/write access on WSL,
+			but the partition must already exist and be recognized on windows first.
+			
+			VERY IMPORTANT: 
+				Beware, Read/Write access will be slower due to how Windows virtualizes physical
+				storage devices to WSL.
+
+			1)(Optional) If your USB Device is not partitioned, partition it on windows:
+
+				-- Warning: This will erase all data in your USB Device --
+
+					1.1 - Press 'system_key + r' on your keyboard
+
+					1.2 - Type and run:
+						diskmgmt.msc
+
+					1.3 - Chose the right device and format it by right-clicking it.
+
+			2) Find the windows drive letter that represents your disk:
+				# Get-PSDrive -PSProvider FileSystem
+
+			3) On WSL, Create a directory on linux for mounting:
+				# mkdir /mnt/DISK_K
+
+			4) On WSL, mount it using the windows drive letter found on step #2:
+				# mount -t drvfs K: /mnt/DISK_K
+
+		MOUNTING USB DEVICES USING 'USBIPD'
+			It's possible to share a physical storage device in it's full form in such a way
+			that it will be possible to run tools like 'fsck', 'fdisk' and 'mkfs' on a partition
+			on the storage block device.
+
+			VERY IMPORTANT: 
+				Beware, Read/Write access will be slower due to how Windows virtualizes physical
+				storage devices to WSL. Because of this, running 'fsck' will be extremely slow.
+
+				For this reason, it's not advised to use linux partitions from physical
+				storage devices on systems that are exposed to crashes or power blackouts,
+				since runnig 'fsck' will literally take ages to finish on very large disks.
+				
+				On a personal note, a small 100GB partition with only 6GB filled took me almost
+				7~10 minutes to finish.
+
+			1) Install 'usbipd' on windows:
+				https://github.com/dorssel/usbipd-win
+
+			2) On windows powershell or cmd, type the following to list available usb buses:
+				$ usbipd list
+
+			3) By running an admin shell on windows, type the following for binding the desired usb bus:
+				# usbipd bind --busid <busid>
+
+				VERY IMPORTANT: This step is only needed once per device.
+
+			4) Now attach the device to WSL2:
+				# usbipd attach --wsl --busid <busid>
+
+			5) Now you can freely use the device on your linux distro:
+				ex: 'lsblk', 'blkid', 'fsck', 'fdisk', 'mkfs', 'mount'.
+
+			6) Once you're finished, dettach the USB bus id:
+				# usbipd detach --busid <busid>
 
 		MOUNTING DEVICES ON WSL
 			1) Fetch devices using:
@@ -51078,6 +51223,8 @@ FILESYSTEM ENCRYPTION USING GOCRYPTFS
 		D) unlike 'encfs', 'gocryptfs' allows specifying configuration key file from the moment it's created.
 		E) unlike 'encfs', 'gocryptfs' has multi-threading support.
 		F) unlike 'encfs', 'gocryptfs' can use both relative and absolute paths when decrypting/encrypting.
+		D) Updated windows support 'gocryptfs' is available as 'cppcryptfs' on windows.
+		source: https://github.com/bailey27/cppcryptfs
 
 		For more info, read the following topics:
 			LUKS VS FSCRYPT VS GOCRYPTFS
@@ -51235,6 +51382,10 @@ FILESYSTEM ENCRYPTION USING ENCFS
 
 		I) Features from most modern available File Systems can be fully utilized when accessing
 		and reading both the encrypted/decrypted data.
+
+		J) Updated windows support for 'gocryptfs' is available as 'cppcryptfs' on windows.
+		source: https://github.com/bailey27/cppcryptfs
+		So utilize gocryptfs instead.
 
 		For more info, read the following topics:
 			LUKS VS FSCRYPT VS GOCRYPTFS
@@ -52343,7 +52494,7 @@ SETTING UP LUKS ENCRYPTION ON A STORAGE DEVICE
 				EXAMPLE - formatting EXT4 on LUKS Storage WITHOUT A PARTITION TABLE -:
 
 					# fdisk /dev/mapper/<device_alias>
-					# mfks.ext4 -E discard -O extent /dev/mapper/<device_alias>
+					# mkfs.ext4 -E discard -O extent /dev/mapper/<device_alias>
 					# fsck.ext4 -C0 -Dfy /dev/mapper/<device_alias>
 					# tune2fs -o discard /dev/mapper/<device_alias>
 					
@@ -52630,7 +52781,7 @@ SETTING UP A LVM STORAGE MANAGEMENT LAYER
 					since LVM already does all volume management.
 
 					1) CREATING THE EXT4 FILESYSTEM
-						# mfks.ext4 -E discard -O extent /dev/volume-group1/ext-data
+						# mkfs.ext4 -E discard -O extent /dev/volume-group1/ext-data
 
 					2) SETTING UP DEFAULT MOUNT OPTIONS FOR EXT4 FILESYSTEM
 						# tune2fs -o discard /dev/volume-group1/ext-data

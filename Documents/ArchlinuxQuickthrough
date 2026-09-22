@@ -35735,7 +35735,8 @@ RUNNING PROGRAMS WITHIN AN ALREADY EXISTING WINE OR PROTON PREFIX
 		3 - Now choose 'Select the default wine prefix'
 		4 - Programs can now be installed using 'winecfg'
 			4.1 - Go to 'Applications' tab and click 'add application, then finally select the .exe application.
-			4.2 - You can also use the 
+			4.2 - You can also use the... *INCOMPLETE | TODO*
+
 		5 (Optional to #4) - you can install/execute .exe, .msi or .msu file using the 'Run an arbitrary executable' option.
 		6 - Programs can now be run through 'taskmgr', 'explorer' or 'Run wine cmd shell' options.
 
@@ -39956,7 +39957,12 @@ READ THIS BEFORE STARTING USING WSL
 			been detected in order to repair the DISM Component Store; then after that
 			you might want to use 'sfc' for verifying and fixing the system in case of errors 
 			in the very same way.
-			Finally restart your after runnning 'sfc /scannow'PC if errors have been fixed.
+			Finally restart your PC after runnning 'sfc /scannow' if errors have been fixed.
+
+			VERY IMPORTANT 3: In order to restore health in case of corruption of the
+			DISM Component Store, DISM requires online connection and Windows Update enabled.
+			Not having online connection or having windows update disabled will not trigger
+			any kind of warning by DISM.
 
 			1) DISM /Online /Cleanup-Image /CheckHealth
 				This will check health of the recovery image.
